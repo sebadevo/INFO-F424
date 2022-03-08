@@ -1,0 +1,1 @@
+pyomo solve main.py Instances/bin_pack_50_0.dat --solver=glpk --show-result --stream-solver --solver-option tmlim=60
