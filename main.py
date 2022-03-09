@@ -24,8 +24,8 @@ time = 10  # number of minutes the program can run
 """ 3. DÉCLARATION DES VARIABLES """
 
 
-model.y = pyo.Var(model.b, domain=pyo.NonNegativeReals)  # 1 if box b is used
-model.x = pyo.Var(model.p, model.b, domain=pyo.NonNegativeReals)  # 1 if product p is in box b
+model.y = pyo.Var(model.b, domain=pyo.NonNegativeReals, bounds=(0,1))  # 1 if box b is used
+model.x = pyo.Var(model.p, model.b, domain=pyo.NonNegativeReals, bounds=(0,1))  # 1 if product p is in box b
 
 
 """ 4. DÉCLARATION DE LA FONCTION OBJECTIVE """
