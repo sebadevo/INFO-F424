@@ -24,8 +24,8 @@ time = 10  # number of minutes the program can run
 """ 3. DÉCLARATION DES VARIABLES """
 
 
-model.y = pyo.Var(model.b, domain=pyo.Binary)  # 1 if box b is used
-model.x = pyo.Var(model.p, model.b, domain=pyo.Binary)  # 1 if product p is in box b
+model.y = pyo.Var(model.b, domain=pyo.NonNegativeReals)  # 1 if box b is used
+model.x = pyo.Var(model.p, model.b, domain=pyo.NonNegativeReals)  # 1 if product p is in box b
 
 
 """ 4. DÉCLARATION DE LA FONCTION OBJECTIVE """
@@ -57,8 +57,8 @@ model.XConstraint = pyo.Constraint(model.p, rule=x_constraint_rule)
 
 """ 6. RÉCUPÉRATION DES RÉSULTATS """
 
-data = pyo.DataPortal(model=model)
-data.load(filname=file_name, model=model)
-instance = model.create_instance(data)
-instance.solve()
-pyo.value(instance.obj)
+# data = pyo.DataPortal(model=model)
+# data.load(filname=file_name, model=model)
+# instance = model.create_instance(data)
+# instance.solve()
+# pyo.value(instance.obj)
