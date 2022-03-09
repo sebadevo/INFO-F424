@@ -1,5 +1,7 @@
 import pyomo.environ as pyo
 
+file_name = "Instances/bin_pack_50_0.dat"
+
 """ 1. CRÉATION DU MODÈLE """
 
 
@@ -55,8 +57,8 @@ model.XConstraint = pyo.Constraint(model.p, rule=x_constraint_rule)
 
 """ 6. RÉCUPÉRATION DES RÉSULTATS """
 
-# data = pyo.DataPortal(model=model)
-# data.load(filname=file_name, model=model)
-# instance = model.create_instance(data)
-# instance.solve()
-# pyo.value(instance.obj)
+data = pyo.DataPortal(model=model)
+data.load(filname=file_name, model=model)
+instance = model.create_instance(data)
+instance.solve()
+pyo.value(instance.obj)
