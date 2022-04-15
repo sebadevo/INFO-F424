@@ -1,4 +1,3 @@
-from winreg import SetValue
 import pyomo.environ as pyo
 
 TIME_LIMIT = 10
@@ -73,18 +72,6 @@ class Calculator:
     def add_constraint(self, correct):
         for elem in correct:
             self.instance.x[elem[0]].fix(elem[1])
-
-            
-            # self.model.set_value(self.model.x[elem[0]], elem[1])
-    #     print("in the method", correct)
-    #     self.model.s = pyo.Set(initialize=[elem for elem in correct])
-    #     # print(self.model.s.at(0))
-    #     @self.model.Constraint(self.model.x)
-    #     def constraint_rule(m):
-    #         # print(self.model.s.construct())
-    #         print("HERE", m.x[0,1])
-    #         return m.set_value(m.x[(0,1)],1)
-    #         # return m.x[self.model.s.construct().__getitem__(0)] == self.model.s.construct().__getitem__(1)
 
     def getNonInt(self):
         for j in self.instance.x:
