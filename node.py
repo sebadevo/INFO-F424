@@ -1,34 +1,34 @@
 class Node:
-    def __init__(self, solution):
-        self.u = 0
-        self.c = 0
+    def __init__(self, solution, upperbound, cost, row):
+        self.upperbound = upperbound
+        self.cost = cost
         self.solution = solution
-        self.visited = []
-        self.notVisited = []
+        self.row = row
+        self.isDone = False
 
-    def getVisited(self):
-        return self.visited
-    
-    def setVisited(self, visited):
-        self.visited = visited
+    def getIsDone(self):
+        return self.isDone
 
-    def getNotVisited(self):
-        return self.notVisited
-    
-    def setNotVisited(self, notVisited):
-        self.notVisited = notVisited
+    def setIsDone(self):
+        return self.isDone
 
-    def getU(self):
-        return self.u
+    def getRow(self):
+        return self.row
+    
+    def setRow(self, row):
+        self.row = row
 
-    def setU(self, u):
-        self.u = u
+    def getUpperbound(self):
+        return self.upperbound
+
+    def setUpperbound(self, upperbound):
+        self.upperbound = upperbound
     
-    def getC(self):
-        return self.c
+    def getCost(self):
+        return self.cost
     
-    def setC(self, c):
-        self.c = c
+    def setCost(self, cost):
+        self.cost = cost
     
     def getSolution(self):
         return self.solution

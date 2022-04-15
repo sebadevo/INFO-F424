@@ -1,6 +1,7 @@
 from calculator import Calculator
 from copy import deepcopy
 import numpy as np
+from node import Node
 
 file_name = "Instances/bin_pack_20_0.dat"
 
@@ -53,43 +54,124 @@ def extract_data(file_name):
 
 
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
-    size, cap, weight = extract_data(file_name)
-    solution = np.zeros((size, size))
-    solution = build_init_solution(size, cap, weight, solution)
-    computeUC(solution)
+    size, cap, weight = extract_data(instance_name)
+    if branching_scheme == 0:
+        leastCost(size, cap, weight)
+    else:
+        print("this methode has not been built yet :/")
+
+def leastCost(size, cap, weight):
+    nodesToExpand= []
+    empty = np.zeros((size, size))
+    solution = build_solution(size, cap, weight, empty, 0)
+    upperbound, cost = computeUC(solution)
+    # node = Node(solution, upperbound, cost, 0)
+    # nodesToExpand.append(node)
+    # upper = deepcopy(upperbound)
+
+    # boucle while a partir d'ici. !!!!!!!!!!!!!!!!!
+
+    # selected = selectNodeToExpand(nodesToExpand) #ici , juste après on vérifie si row de cette node = size, si c'est le cas alors on a finit l'aglo et cette node est notre solution.
+    # nodesToExpand.remove(selected)
+    # newExpandedNodes = expandTreeLC(selected, size, cap, weight)
+
+    # il reste a ajouter la verification des costs, si ils sont plus élevé que le que upper, alors on la retire des nodes à explorer
+    # creer la fonction get best upper, si elle renvoie un upper inférieur à celui, qu'on a déjà alors on ajoute les new nodes
+    # à la liste des newExpanded nodes et on fait un nettoyage des badnodes sur tout le monde avec le nouveau upper, sinon on fait juste un nettoyage sur les 
+    # les nouvelles nodes a explorer qui vont être ajouter (donc sur newExpandedNodes).
+
+    # après ça il faut juste vérifier si on a finit l'algo ou pas donc verifier si la node qui à le cost le plus bas est celle qui est au feuille de notre arbre.
+    # (row == size if true) faire ça au moment ou on selection selectNodeToExpand.
+
+    # nodesToExpand.extend(newExpandedNodes)
+
+    # notFinished = False
+    # while notFinished:
+    #     pass
+    print(solution)
+    print("the cost of this node is : ", cost)
+    print("and it's upperbound is : ", upperbound)
+
+def selectNodeToExpand(nodesToExpand):
+    cost = 999
+    selected = None
+    for node in nodesToExpand:
+        if node.getCost < cost:
+            cost = node.getCost
+            selected = node
+    return selected
 
 
-def build_init_solution(size, cap, weight, solution):
-    capacity = deepcopy(cap)
-    solution[0][0] = 1
-    capacity -=weight[0]
-    j = 0
-    for i in range(1, size):
-        if capacity-weight[i] >=0:
-            solution[i][j] = 1
-            capacity -=weight[i]
-        else :
-            frac = capacity/weight[i]
-            solution[i][j] = frac
-            j+=1
-            capacity = deepcopy(cap)
-            frac = 1 - frac
-            capacity -= frac*weight[i]
-            solution[i][j] = frac
+def expandTreeLC(node, size, cap, weight):
+    init = node.getSolution()
+    row = node.getRow()
+    new_nodes = []
+    for i in range(size):
+        new_sol = deepcopy(init)
+        new_sol[row] = np.zeros(size)
+        new_sol[row][i] = 1
+        for j in range(row+1,size):
+            new_sol[j] = np.zeros(size)
+        if check_valid_sol(new_sol, size, cap, weight):
+            new_sol = build_solution(size, cap, weight, new_sol, row+1)
+            upperbound, cost = computeUC(new_sol)
+            new_node = Node(new_sol, upperbound, cost, row+1)
+            new_nodes.append(new_node)
+    return new_nodes
+
+def check_valid_sol(solution, size, cap, weight):
+    for col in range(size):
+        value = 0
+        for row in range(size):
+            value += solution[row][col]*weight[row]
+        if value > cap:
+            return False
+    return True
+
+
+def build_solution(size, cap, weight, solution, row=0):
+    bag = sum(solution)
+    j = getNextAvailableBag(bag, size)
+    capacity = (1-bag[j])*cap
+    for i in range(row, size):
+        w = 1*weight[i]
+        frac = 0
+        while w > 0:
+            if capacity-w >=0:
+                solution[i][j] = w/weight[i]
+                capacity -=w
+                bag[j] +=w/cap
+                w = 0
+            else: 
+                frac = capacity/w
+                solution[i][j] = frac
+                bag[j] = 1
+                j = getNextAvailableBag(bag, size)
+                capacity = (1-bag[j])*cap
+                w = w*(1-frac)
     return solution
+
+def getNextAvailableBag(bag,size, init=0):
+    for i in range(init, size):
+        if bag[i] < 1:
+            return i
 
 def computeUC(solution):
     summary_sol = sum(solution)
-    u = 0
-    c = 0
+    cost = 0
+    upperbound = 0
+    flag = False
     for i in range(len(summary_sol)):
         if summary_sol[i]>0:
-            u+=1
+            cost+=1
         for j in range(len(solution)):
             if solution[i][j] != 1 and solution[i][j] != 0:
-                c +=1
-                break
-    c += u
-    return u, c
+                upperbound +=1
+                flag = True
+        if flag:
+            upperbound-=1
+            flag = False
+    upperbound += cost
+    return upperbound, cost
     
 branch_and_bound(file_name)
