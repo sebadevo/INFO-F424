@@ -3,7 +3,9 @@ from copy import deepcopy
 import numpy as np
 from node import Node
 
-file_name = "Instances/bin_pack_20_0.dat"
+
+        
+# file_name = "Instances/bin_pack_55_0.dat"
 
 
 def runpart1():
@@ -63,41 +65,64 @@ def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, ti
 def leastCost(size, cap, weight):
     nodesToExpand= []
     empty = np.zeros((size, size))
-    solution = build_solution(size, cap, weight, empty, 0)
-    upperbound, cost = computeUC(solution)
-    # node = Node(solution, upperbound, cost, 0)
-    # nodesToExpand.append(node)
-    # upper = deepcopy(upperbound)
+    grid = build_solution(size, cap, weight, empty, 0)
+    upperbound, cost = computeUC(grid)
+    node = Node(grid, upperbound, cost, 0)
+    nodesToExpand.append(node)
+    upper = deepcopy(upperbound)
+    running = True
+    solution = None
+    i = 0
+    while running:
+        i+=1
+        selected = selectNodeToExpand(nodesToExpand) 
+        if i%100==1:
+            print("I am here: ", selected.getRow(), "  current upper value :", upper, "  and cost value (lowerbound) is :", cost, "  and the length of the list of nodes is : ", len(nodesToExpand))
+        if selected.getRow() == size or selected.getUpperbound() == cost:
+            solution = selected
+            running = False
+            break
+        nodesToExpand.remove(selected)
+        if selected.getRow()<size:
+            newExpandedNodes = expandTreeLC(selected, size, cap, weight)
+            upperbound = getBestUpper(newExpandedNodes)
 
-    # boucle while a partir d'ici. !!!!!!!!!!!!!!!!!
+            if upperbound < upper:
+                upper = upperbound
+                nodesToExpand.extend(newExpandedNodes) #On ajoute toutes les nodes et puis on fait le filtre
+                nodesToExpand = removeBadNodes(nodesToExpand, upper)
+            else:
+                newExpandedNodes = removeBadNodes(newExpandedNodes, upper)
+                nodesToExpand.extend(newExpandedNodes)
 
-    # selected = selectNodeToExpand(nodesToExpand) #ici , juste après on vérifie si row de cette node = size, si c'est le cas alors on a finit l'aglo et cette node est notre solution.
-    # nodesToExpand.remove(selected)
-    # newExpandedNodes = expandTreeLC(selected, size, cap, weight)
+    print("valalue : ", solution.getCost(), "  lowerbound :", cost)
+    
+def removeBadNodes(nodes, upper):
+    length = len(nodes)
+    i=0
+    while i < length:
+        if nodes[i].getUpperbound() > upper+3:
+            nodes.remove(nodes[i])
+            i-=1
+            length -=1
+        i+=1
+    return nodes
 
-    # il reste a ajouter la verification des costs, si ils sont plus élevé que le que upper, alors on la retire des nodes à explorer
-    # creer la fonction get best upper, si elle renvoie un upper inférieur à celui, qu'on a déjà alors on ajoute les new nodes
-    # à la liste des newExpanded nodes et on fait un nettoyage des badnodes sur tout le monde avec le nouveau upper, sinon on fait juste un nettoyage sur les 
-    # les nouvelles nodes a explorer qui vont être ajouter (donc sur newExpandedNodes).
+def getBestUpper(nodes):
+    upper = 9999
+    for node in nodes:
+        if node.getUpperbound() < upper:
+            upper = node.getUpperbound()
+    return upper
 
-    # après ça il faut juste vérifier si on a finit l'algo ou pas donc verifier si la node qui à le cost le plus bas est celle qui est au feuille de notre arbre.
-    # (row == size if true) faire ça au moment ou on selection selectNodeToExpand.
-
-    # nodesToExpand.extend(newExpandedNodes)
-
-    # notFinished = False
-    # while notFinished:
-    #     pass
-    print(solution)
-    print("the cost of this node is : ", cost)
-    print("and it's upperbound is : ", upperbound)
 
 def selectNodeToExpand(nodesToExpand):
-    cost = 999
+    upper = getBestUpper(nodesToExpand)
+    row = -1
     selected = None
     for node in nodesToExpand:
-        if node.getCost < cost:
-            cost = node.getCost
+        if node.getUpperbound() == upper and row < node.getRow():
+            row = node.getRow()
             selected = node
     return selected
 
@@ -112,25 +137,29 @@ def expandTreeLC(node, size, cap, weight):
         new_sol[row][i] = 1
         for j in range(row+1,size):
             new_sol[j] = np.zeros(size)
-        if check_valid_sol(new_sol, size, cap, weight):
+        if check_valid_sol(new_sol, size, cap, weight, row+1):
             new_sol = build_solution(size, cap, weight, new_sol, row+1)
             upperbound, cost = computeUC(new_sol)
             new_node = Node(new_sol, upperbound, cost, row+1)
             new_nodes.append(new_node)
     return new_nodes
 
-def check_valid_sol(solution, size, cap, weight):
+def check_valid_sol(solution, size, cap, weight, row):
     for col in range(size):
         value = 0
-        for row in range(size):
-            value += solution[row][col]*weight[row]
+        for rows in range(row):
+            value += solution[rows][col]*weight[rows]
         if value > cap:
             return False
     return True
 
 
 def build_solution(size, cap, weight, solution, row=0):
-    bag = sum(solution)
+    bag = np.zeros(size)
+    for col in range(size):
+        for rows in range(row):
+            bag[col] += solution[rows][col]*weight[col]/cap
+    
     j = getNextAvailableBag(bag, size)
     capacity = (1-bag[j])*cap
     for i in range(row, size):
@@ -151,7 +180,7 @@ def build_solution(size, cap, weight, solution, row=0):
                 w = w*(1-frac)
     return solution
 
-def getNextAvailableBag(bag,size, init=0):
+def getNextAvailableBag(bag, size, init=0):
     for i in range(init, size):
         if bag[i] < 1:
             return i
@@ -173,5 +202,14 @@ def computeUC(solution):
             flag = False
     upperbound += cost
     return upperbound, cost
-    
-branch_and_bound(file_name)
+
+doneList = []
+for i in range(55, 150, 5):
+    for j in range(0, 2):
+        file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
+        branch_and_bound(file_name)
+        doneList.append((i, j))
+        print(doneList)
+
+
+        

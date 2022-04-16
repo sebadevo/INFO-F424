@@ -4,7 +4,7 @@ class Node:
         self.cost = cost
         self.solution = solution
         self.row = row
-        self.isDone = False
+        self.isDone = False # on s'en fou
 
     def getIsDone(self):
         return self.isDone
