@@ -59,48 +59,82 @@ def extract_data(filename):
 
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
     size, cap, weight = extract_data(instance_name)
+    heuristic = get_best_heuristic(size, cap, weight)
+    print(heuristic)
     if branching_scheme == 0:
-        leastCost(size, cap, weight)
+        # leastCost(size, cap, weight)
+        pass
     else:
         print("this methode has not been built yet :/")
+        
+def get_best_heuristic(size, cap, weight):
+    """
+    Will select the best solution among all the ones proposed by the heuristics. 
+    Return: a list with the the solution and its objective value 
+    ex : best = [sol, obj]
+    """
+    heur_list = []
+    
+    sol_full_packing = build_full_packing_solution(size, cap, weight)
+    heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
+
+    sol_best_fit = build_best_fit_solution(size, cap, weight)
+    heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
+
+    sol_greedy = build_greedy_solution(size, cap, weight)
+    heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
+
+    sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
+    heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
+    best = 9999
+    elem = []
+    for i in range(len(heur_list)):
+        if heur_list[i][1] < best: 
+            elem = heur_list[i]
+            best = heur_list[i][1]
+    return elem
 
 
-def leastCost(size, cap, weight):
-    nodesToExpand = []
-    empty = np.zeros((size, size))
-    grid = build_solution(size, cap, weight, empty, 0)
-    upperbound, cost = computeUC(grid)
-    node = Node(grid, upperbound, cost, 0)
-    nodesToExpand.append(node)
-    upper = deepcopy(upperbound)
-    running = True
-    solution = None
-    i = 0
-    while running:
-        i += 1
-        selected = selectNodeToExpand(nodesToExpand)
-        if i % 10 == 1:
-            print("I am here: ", selected.getRow(), "  current upper value :", upper,
-                  "  and cost value (lowerbound) is :", cost, "  and the length of the list of nodes is : ",
-                  len(nodesToExpand))
-        if selected.getRow() == size or selected.getUpperbound() == cost:
-            solution = selected
-            running = False
-            break
-        nodesToExpand.remove(selected)
-        if selected.getRow() < size:
-            newExpandedNodes = expandTreeLC(selected, size, cap, weight)
-            upperbound = getBestUpper(newExpandedNodes)
 
-            if upperbound < upper:
-                upper = upperbound
-                nodesToExpand.extend(newExpandedNodes)  # On ajoute toutes les nodes et puis on fait le filtre
-                nodesToExpand = removeBadNodes(nodesToExpand, upper)
-            else:
-                newExpandedNodes = removeBadNodes(newExpandedNodes, upper)
-                nodesToExpand.extend(newExpandedNodes)
+def depth_first():
+    pass
+    
+# def leastCost(size, cap, weight):
+#     nodesToExpand = []
+#     empty = np.zeros((size, size))
+#     grid = build_solution(size, cap, weight, empty, 0)
+#     upperbound, cost = computeUC(grid)
+#     node = Node(grid, upperbound, cost, 0)
+#     nodesToExpand.append(node)
+#     upper = deepcopy(upperbound)
+#     running = True
+#     solution = None
+#     i = 0
+#     while running:
+#         i += 1
+#         selected = selectNodeToExpand(nodesToExpand)
+#         if i % 10 == 1:
+#             print("I am here: ", selected.getRow(), "  current upper value :", upper,
+#                   "  and cost value (lowerbound) is :", cost, "  and the length of the list of nodes is : ",
+#                   len(nodesToExpand))
+#         if selected.getRow() == size or selected.getUpperbound() == cost:
+#             solution = selected
+#             running = False
+#             break
+#         nodesToExpand.remove(selected)
+#         if selected.getRow() < size:
+#             newExpandedNodes = expandTreeLC(selected, size, cap, weight)
+#             upperbound = getBestUpper(newExpandedNodes)
 
-    print("value : ", solution.getCost(), "  lower bound :", cost)
+#             if upperbound < upper:
+#                 upper = upperbound
+#                 nodesToExpand.extend(newExpandedNodes)  # On ajoute toutes les nodes et puis on fait le filtre
+#                 nodesToExpand = removeBadNodes(nodesToExpand, upper)
+#             else:
+#                 newExpandedNodes = removeBadNodes(newExpandedNodes, upper)
+#                 nodesToExpand.extend(newExpandedNodes)
+
+#     print("value : ", solution.getCost(), "  lower bound :", cost)
 
 
 def removeBadNodes(nodes, upper):
@@ -134,22 +168,22 @@ def selectNodeToExpand(nodesToExpand):
     return selected
 
 
-def expandTreeLC(node, size, cap, weight):
-    init = node.getSolution()
-    row = node.getRow()
-    new_nodes = []
-    for i in range(size):
-        new_sol = deepcopy(init)
-        new_sol[row] = np.zeros(size)
-        new_sol[row][i] = 1
-        for j in range(row + 1, size):
-            new_sol[j] = np.zeros(size)
-        if check_valid_sol(new_sol, size, cap, weight, row + 1):
-            new_sol = build_solution(size, cap, weight, new_sol, row + 1)
-            upperbound, cost = computeUC(new_sol)
-            new_node = Node(new_sol, upperbound, cost, row + 1)
-            new_nodes.append(new_node)
-    return new_nodes
+# def expandTreeLC(node, size, cap, weight):
+#     init = node.getSolution()
+#     row = node.getRow()
+#     new_nodes = []
+#     for i in range(size):
+#         new_sol = deepcopy(init)
+#         new_sol[row] = np.zeros(size)
+#         new_sol[row][i] = 1
+#         for j in range(row + 1, size):
+#             new_sol[j] = np.zeros(size)
+#         if check_valid_sol(new_sol, size, cap, weight, row + 1):
+#             new_sol = build_solution(size, cap, weight, new_sol, row + 1)
+#             upperbound, cost = computeUC(new_sol)
+#             new_node = Node(new_sol, upperbound, cost, row + 1)
+#             new_nodes.append(new_node)
+#     return new_nodes
 
 
 def check_valid_sol(solution, size, cap, weight, row):
@@ -161,32 +195,6 @@ def check_valid_sol(solution, size, cap, weight, row):
             return False
     return True
 
-
-def build_solution(size, cap, weight, solution, row=0):
-    bag = np.zeros(size)
-    for col in range(size):
-        for rows in range(row):
-            bag[col] += solution[rows][col] * weight[rows] / cap
-
-    j = getNextAvailableBag(bag, size)
-    capacity = (1 - bag[j]) * cap
-    for i in range(row, size):
-        w = 1 * weight[i]
-        frac = 0
-        while w > 0:
-            if capacity - w >= 0:
-                solution[i][j] = w / weight[i]
-                capacity -= w
-                bag[j] += w / cap
-                w = 0
-            else:
-                frac = capacity / w
-                solution[i][j] = frac
-                bag[j] = 1
-                j = getNextAvailableBag(bag, size)
-                capacity = (1 - bag[j]) * cap
-                w = w * (1 - frac)
-    return solution
 
 def build_greedy_solution(size, cap, weight):
     """
@@ -285,7 +293,7 @@ def getNextAvailableBag(bag, size, init=0):
         if bag[i] < 1:
             return i
 
-def get_obj(solution, cap, weight, rounded=False):
+def get_obj(solution, size, cap, weight, rounded=False):
     bag = np.zeros(size)
     for col in range(size):
         for rows in range(size):
@@ -295,29 +303,10 @@ def get_obj(solution, cap, weight, rounded=False):
         for i in range(size):
             if bag[i]>0:
                 value+=1
-        
-        value = sum(np.ceil(bag))
+        #value = sum(np.ceil(bag))
     else:
         value = sum(bag)
     return value
-
-def computeUC(solution):
-    summary_sol = sum(solution)
-    cost = 0
-    upperbound = 0
-    flag = False
-    for i in range(len(summary_sol)):
-        if summary_sol[i] > 0:
-            cost += 1
-        for j in range(len(solution)):
-            if solution[i][j] != 1 and solution[i][j] != 0:
-                upperbound += 1
-                flag = True
-        if flag:
-            upperbound -= 1
-            flag = False
-    upperbound += cost
-    return upperbound, cost
 
 
 # doneList = []
@@ -330,22 +319,20 @@ def computeUC(solution):
 for i in range(20, 155, 5):
     for j in range(3):
         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-        size, cap, weight = extract_data(file_name)
-        solution = build_full_packing_solution(size, cap, weight)
-        # solution1 = build_greedy_solution(size, cap, weight)
-        solution2 = build_best_fit_solution(size, cap, weight)
-        solution4 = build_solution(size, cap, weight, np.zeros((size, size)))
+        # size, cap, weight = extract_data(file_name)
+        branch_and_bound(file_name)
+        # solution = build_full_packing_solution(size, cap, weight)
+        # # solution1 = build_greedy_solution(size, cap, weight)
+        # solution2 = build_best_fit_solution(size, cap, weight)
 
-        obj = get_obj(solution, cap, weight, True)
-        # obj1 = get_obj(solution1, cap, weight, True)
-        obj2 = get_obj(solution2, cap, weight, True)
-        obj4 = get_obj(solution4, cap, weight)
+        # obj = get_obj(solution, size, cap, weight, True)
+        # # obj1 = get_obj(solution1, size, cap, weight, True)
+        # obj2 = get_obj(solution2, size, cap, weight, True)
 
-        print("value of the upperbound of supposed best", obj)
-        # print("value of the upperbound of greedy", obj1)
-        print("value of the upperbound of bestfit", obj2)
-        print("value of the upperbound of relaxation", obj4, "value of lb", sum(weight)/cap)
+        # print("value of the upperbound of supposed best", obj)
+        # # print("value of the upperbound of greedy", obj1)
+        # print("value of the upperbound of bestfit", obj2)
+        # print("value of lb", sum(weight)/cap)
 
-        print("are solution of greedy and best fit identical ? " + str(i) + "_" + str(j), (solution == solution2).all())
-
+        # print("are solution of greedy and best fit identical ? " + str(i) + "_" + str(j), (solution == solution2).all())
 
