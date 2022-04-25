@@ -98,6 +98,18 @@ class Calculator:
                 value = pyo.value(self.instance.x[j])
                 return pos, value
 
+    def getAllNonInt(self):
+        list_non_int = []
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]) != 1 and pyo.value(self.instance.x[j]) != 0:
+                pos = j
+                value = pyo.value(self.instance.x[j])
+                list_non_int.append([pos, value])
+        return list_non_int
+
+    def get_objective(self):
+        return pyo.value(self.instance.obj_expression)
+
     def getReduced(self):
         temp = []
         for j in self.instance.x:

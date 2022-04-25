@@ -1,3 +1,4 @@
+from calendar import c
 from calculator import Calculator
 from copy import deepcopy
 import numpy as np
@@ -60,8 +61,9 @@ def extract_data(filename):
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    print(heuristic)
+    # print(heuristic)
     if branching_scheme == 0:
+        depth_first(heuristic[1], instance_name)
         # leastCost(size, cap, weight)
         pass
     else:
@@ -94,10 +96,57 @@ def get_best_heuristic(size, cap, weight):
             best = heur_list[i][1]
     return elem
 
+def compute_dist(fracs):
+    best = 2
+    coord = None
+    for i in fracs: 
+        dist = 0.5 - abs(i[1]-0.5)
+        if dist < best: 
+            best = dist
+            coord = i
+    coord[1] = round(coord[1])
+    return coord
 
 
-def depth_first():
-    pass
+
+
+def depth_first(upperbound, file_name):
+    """
+    """
+    node_list = []
+    calculator = Calculator(file_name)
+    calculator.run()
+    root_node = Node(None, upperbound, calculator.get_objective(), None)
+    node_list.append(root_node)
+    while root_node.get_lowerbound != root_node.get_upperbound:
+        selected = select_node_to_expand(node_list)
+        new_nodes = expand_tree_depth_first(selected, calculator)
+        node_list.extend(new_nodes)
+    
+
+
+    
+def select_node_to_expand(nodes):
+    return nodes[-1]
+                
+    
+
+def expand_tree_depth_first(node, calculator):
+    all_non_int = calculator.getAllNonInt()
+    constr = compute_dist(all_non_int) #return a list with in first pos the value, and sec. pos the pos
+    constraints = node.getConstraints()
+    constraints.append(constr)
+    calculator = Calculator(file_name)
+    calculator.add_constraint_model(constraints)
+    calculator.run()
+    lowerbound = calculator.get_objective()
+    upperbound = None
+    if calculator.checkFinishedProduct():
+        upperbound = lowerbound
+    child = Node(constraints, upperbound, lowerbound, node)
+    node.add_child(child)
+
+
     
 # def leastCost(size, cap, weight):
 #     nodesToExpand = []
@@ -157,15 +206,7 @@ def getBestUpper(nodes):
     return upper
 
 
-def selectNodeToExpand(nodesToExpand):
-    upper = getBestUpper(nodesToExpand)
-    row = -1
-    selected = None
-    for node in nodesToExpand:
-        if node.getUpperbound() == upper and row < node.getRow():
-            row = node.getRow()
-            selected = node
-    return selected
+
 
 
 # def expandTreeLC(node, size, cap, weight):

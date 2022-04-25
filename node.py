@@ -1,37 +1,39 @@
 class Node:
-    def __init__(self, solution, upperbound, cost, row):
+    def __init__(self, constraints, upperbound, lowerbound, parent):
         self.upperbound = upperbound
-        self.cost = cost
-        self.solution = solution
-        self.row = row
-        self.isDone = False # on s'en fou
+        self.lowerbound = lowerbound
+        self.constraints = constraints
+        self.parent = parent
+        self.childs = []
+        
+    def get_parent(self):
+        return self.parent
 
-    def getIsDone(self):
-        return self.isDone
+    def set_parent(self, parent):
+        self.parent = parent
 
-    def setIsDone(self):
-        return self.isDone
-
-    def getRow(self):
-        return self.row
+    def get_childs(self):
+        return self.childs
     
-    def setRow(self, row):
-        self.row = row
-
-    def getUpperbound(self):
+    def add_child(self, child):
+        self.childs.append(child)
+                
+    def get_upperbound(self):
         return self.upperbound
 
-    def setUpperbound(self, upperbound):
+    def set_upperbound(self, upperbound):
         self.upperbound = upperbound
     
-    def getCost(self):
-        return self.cost
+    def get_lowerbound(self):
+        return self.lowerbound
     
-    def setCost(self, cost):
-        self.cost = cost
+    def set_lowerbound(self, lowerbound):
+        self.lowerbound = lowerbound
     
-    def getSolution(self):
-        return self.solution
+    def get_constraints(self):
+        if self.constraints is None:
+            return []
+        return self.constraints
     
-    def setSolution(self, solution):
-        self.solution = solution
+    def set_constraints(self, constraints):
+        self.constraints = constraints
