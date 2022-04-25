@@ -28,8 +28,7 @@ def runpart1():
         corrected.append([pos, value])
         print("SIZE of corrected: ", len(corrected))
         calculator = Calculator(file_name)
-        calculator.add_constraint_model(corrected)
-        print(corrected)
+        calculator.add_constraint(corrected)
         calculator.run()
         calculator.affichage_working_progress()
         i += 1
@@ -188,118 +187,12 @@ def build_solution(size, cap, weight, solution, row=0):
                 w = w * (1 - frac)
     return solution
 
-def build_greedy_solution(size, cap, weight):
-    """
-    Greedy heuristic algorithm that will fill the first bag that can accept an object. 
-    It will return the first solution for the root node. 
-    As the objects are already sorted by weights this algorithm is equivalent to "First-Fit decreasing". 
-    """
-    bag = [cap for i in range(size)]
-    solution = np.zeros((size, size))
-    for obj in range(size):
-        for sac in range(size):
-            if bag[sac] >= weight[obj]:
-                solution[obj][sac] = 1
-                bag[sac]-=weight[obj]
-                break
-    return solution
-
-def build_best_fit_solution(size, cap, weight):
-    """
-    Algorithm that will try to fill a bag such that it will be the closest of being full. 
-    It will return the first solution for the root node.  
-    """
-    bag = [cap for i in range(size)]
-    solution = np.zeros((size, size))
-    for obj in range(size):
-        rest = 1000
-        index = 0
-        for sac in range(size):
-            if bag[sac] >= weight[obj] and bag[sac]-weight[obj]<rest:
-                rest = bag[sac] - weight[obj]
-                index = sac
-        solution[obj][index] = 1
-        bag[index]-=weight[obj]
-    return solution   
-
-def build_evenly_fill_solution(size, cap, weight):
-    """
-    Algorithm that will try to fill a bag such that it will be the closest of being full. 
-    It will return the first solution for the root node.  
-    """
-    bag = [cap for i in range(size)]
-    solution = np.zeros((size, size))
-    for obj in range(size):
-        ratio = 1
-        index = 0
-        for sac in range(size):
-            if ratio > weight[obj]/bag[sac] and bag[sac]>=weight[obj]:
-                ratio = weight[obj]/bag[sac]
-                index = sac
-        solution[obj][index] = 1
-        bag[index]-=weight[obj]
-    return solution
-
-def build_full_packing_solution(size, cap, weight):
-    """
-    Algorithm that will try to find combination of objects based on the sum of their weights (s.t it is equal to the cap) to try and
-    fill a bag as much as possible. 
-    It will return the first solution for the root node.  
-    """
-    bag = 0
-    temp = []
-    for i in range(size):
-        temp.append([weight[i], i])
-    weight = temp
-    solution = np.zeros((size, size))
-    while len(weight)>0:
-        work_cap = weight[0][0]
-        best_index = [0]
-        for i in range(1, len(weight)-1):
-            work_bag = np.array([weight[0][0]], dtype=int)
-            index = [0]
-            for j in range(i, len(weight)-1):
-                if sum(work_bag)+weight[j][0] == cap:
-                    work_bag = np.append(work_bag,weight[j][0])
-                    index.append(j)
-                    break
-                elif sum(work_bag)+weight[j][0] < cap:
-                    work_bag = np.append(work_bag,weight[j][0])
-                    index.append(j)
-            if work_cap < sum(work_bag):
-                work_cap = sum(work_bag)
-                best_index = deepcopy(index)
-                if work_cap == cap:
-                    break
-        a = 0
-        for i in best_index:
-            solution[weight[i-a][1]][bag] = 1
-            weight.pop(i-a)
-            a+=1
-        bag +=1
-    return solution  
-
 
 def getNextAvailableBag(bag, size, init=0):
     for i in range(init, size):
         if bag[i] < 1:
             return i
 
-def get_obj(solution, cap, weight, rounded=False):
-    bag = np.zeros(size)
-    for col in range(size):
-        for rows in range(size):
-            bag[col] += solution[rows][col] * weight[rows] / cap
-    if rounded:
-        value = 0
-        for i in range(size):
-            if bag[i]>0:
-                value+=1
-        
-        value = sum(np.ceil(bag))
-    else:
-        value = sum(bag)
-    return value
 
 def computeUC(solution):
     summary_sol = sum(solution)
@@ -327,25 +220,7 @@ def computeUC(solution):
 #         branch_and_bound(file_name)
 #         doneList.append((i, j))
 #         print(doneList)
-for i in range(20, 155, 5):
-    for j in range(3):
-        file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-        size, cap, weight = extract_data(file_name)
-        solution = build_full_packing_solution(size, cap, weight)
-        # solution1 = build_greedy_solution(size, cap, weight)
-        solution2 = build_best_fit_solution(size, cap, weight)
-        solution4 = build_solution(size, cap, weight, np.zeros((size, size)))
 
-        obj = get_obj(solution, cap, weight, True)
-        # obj1 = get_obj(solution1, cap, weight, True)
-        obj2 = get_obj(solution2, cap, weight, True)
-        obj4 = get_obj(solution4, cap, weight)
-
-        print("value of the upperbound of supposed best", obj)
-        # print("value of the upperbound of greedy", obj1)
-        print("value of the upperbound of bestfit", obj2)
-        print("value of the upperbound of relaxation", obj4, "value of lb", sum(weight)/cap)
-
-        print("are solution of greedy and best fit identical ? " + str(i) + "_" + str(j), (solution == solution2).all())
-
+file_name = "Instances/bin_pack_20_0.dat"
+runpart1()
 

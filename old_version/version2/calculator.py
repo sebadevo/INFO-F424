@@ -20,7 +20,7 @@ class Calculator:
 
         """ 3. DÉCLARATION DES VARIABLES """
 
-        self.model.y = pyo.Var(self.model.b, domain=pyo.NonNegativeReals, initialize=0, bounds=(0, 1))  # 1 if box b is used
+        self.model.y = pyo.Var(self.model.b, domain=pyo.Binary, initialize=0, bounds=(0, 1))  # 1 if box b is used
         self.model.x = pyo.Var(self.model.p, self.model.b, domain=pyo.NonNegativeReals, initialize=0, bounds=(0, 1))  # 1 if product p is in box b 
 
         """ 4. DÉCLARATION DE LA FONCTION OBJECTIVE """
@@ -50,7 +50,6 @@ class Calculator:
         self.data = pyo.DataPortal(model=self.model)
         self.data.load(filename=self.filename, model=self.model)
         self.instance = self.model.create_instance(self.data)
-        self.instance.constraint_list = pyo.ConstraintList()
 
     def run(self):
         """ 8. LANCEMENT DU SOLVEUR """
@@ -84,11 +83,9 @@ class Calculator:
             self.instance.Constraint
 
     def add_constraint_model(self, corrected):
+        self.model.constrain_list = pyo.ConstraintList()
         for elem in corrected:
-            if elem[1]:
-                self.instance.constraint_list.add(self.instance.x[elem[0]]>=elem[1])
-            else:
-                self.instance.constraint_list.add(self.instance.x[elem[0]]<=elem[1])
+            self.model.consrtaint_list.add(self.model.x[elem[0]]>=elem[1])
 
 
     def getNonInt(self):
