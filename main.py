@@ -1,12 +1,14 @@
 from calendar import c
+from math import ceil
 from calculator import Calculator
 from copy import deepcopy
 import numpy as np
 from node import Node
 
 
-# file_name = "Instances/bin_pack_55_0.dat"
+file_name = "Instances/bin_pack2_245_1.dat"
 
+percent = 0
 
 def runpart1():
     corrected = []
@@ -61,9 +63,13 @@ def extract_data(filename):
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    # print(heuristic)
+    print("heuristic :",heuristic[1], " proximity to lb:", heuristic[1]-ceil(sum(weight)/cap))
+
+    if heuristic[1]-ceil(sum(weight)/cap) == 0:
+        return 1
+    return 0
     if branching_scheme == 0:
-        depth_first(heuristic[1], instance_name)
+        #depth_first(heuristic[1], instance_name)
         # leastCost(size, cap, weight)
         pass
     else:
@@ -78,15 +84,19 @@ def get_best_heuristic(size, cap, weight):
     heur_list = []
     
     sol_full_packing = build_full_packing_solution(size, cap, weight)
+    print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
     heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
 
     sol_best_fit = build_best_fit_solution(size, cap, weight)
+    print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
     heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
 
     sol_greedy = build_greedy_solution(size, cap, weight)
+    print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
     heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
     sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
+    print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
     heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
     best = 9999
     elem = []
@@ -357,11 +367,12 @@ def get_obj(solution, size, cap, weight, rounded=False):
 #         branch_and_bound(file_name)
 #         doneList.append((i, j))
 #         print(doneList)
-for i in range(20, 155, 5):
-    for j in range(3):
-        file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-        # size, cap, weight = extract_data(file_name)
-        branch_and_bound(file_name)
+# for i in range(20, 155, 5):
+#     for j in range(3):
+#         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
+#         # size, cap, weight = extract_data(file_name)
+#         print(file_name)
+#         percent += branch_and_bound(file_name,)
         # solution = build_full_packing_solution(size, cap, weight)
         # # solution1 = build_greedy_solution(size, cap, weight)
         # solution2 = build_best_fit_solution(size, cap, weight)
@@ -376,4 +387,5 @@ for i in range(20, 155, 5):
         # print("value of lb", sum(weight)/cap)
 
         # print("are solution of greedy and best fit identical ? " + str(i) + "_" + str(j), (solution == solution2).all())
-
+branch_and_bound(file_name)
+print("percentage of completion : ", percent, (155-20)*3/5) #*100/((155-20)*3/5)
