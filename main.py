@@ -1,4 +1,3 @@
-from calendar import c
 from math import ceil
 from calculator import Calculator
 from copy import deepcopy
@@ -63,10 +62,12 @@ def extract_data(filename):
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    print("heuristic :",heuristic[1], " proximity to lb:", heuristic[1]-ceil(sum(weight)/cap))
-
+    prox = heuristic[1]-ceil(sum(weight)/cap)
+    print("heuristic :",heuristic[1], " LB : ",ceil(sum(weight)/cap), " proximity to LB:", prox)
+    print("is the heuristic's solution valid ? ", check_valid_sol(heuristic[0], size, cap, weight))
     if heuristic[1]-ceil(sum(weight)/cap) == 0:
         return 1
+    print(instance_name)
     return 0
     if branching_scheme == 0:
         #depth_first(heuristic[1], instance_name)
@@ -83,9 +84,6 @@ def get_best_heuristic(size, cap, weight):
     """
     heur_list = []
     
-    sol_full_packing = build_full_packing_solution(size, cap, weight)
-    print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
-    heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
 
     sol_best_fit = build_best_fit_solution(size, cap, weight)
     print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
@@ -98,6 +96,11 @@ def get_best_heuristic(size, cap, weight):
     sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
     print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
     heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
+
+    sol_full_packing = build_full_packing_solution(size, cap, weight)
+    print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
+    heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
+    
     best = 9999
     elem = []
     for i in range(len(heur_list)):
@@ -116,8 +119,6 @@ def compute_dist(fracs):
             coord = i
     coord[1] = round(coord[1])
     return coord
-
-
 
 
 def depth_first(upperbound, file_name):
@@ -217,8 +218,6 @@ def getBestUpper(nodes):
 
 
 
-
-
 # def expandTreeLC(node, size, cap, weight):
 #     init = node.getSolution()
 #     row = node.getRow()
@@ -237,11 +236,13 @@ def getBestUpper(nodes):
 #     return new_nodes
 
 
-def check_valid_sol(solution, size, cap, weight, row):
+def check_valid_sol(solution, size, cap, weight):
     for col in range(size):
         value = 0
-        for rows in range(row):
-            value += solution[rows][col] * weight[rows]
+        for row in range(size):
+            value += solution[row][col] * weight[row]
+        if value:
+            print(value)
         if value > cap:
             return False
     return True
@@ -314,17 +315,17 @@ def build_full_packing_solution(size, cap, weight):
     while len(weight)>0:
         work_cap = weight[0][0]
         best_index = [0]
-        for i in range(1, len(weight)-1):
+        for i in range(1, len(weight)):
             work_bag = np.array([weight[0][0]], dtype=int)
             index = [0]
-            for j in range(i, len(weight)-1):
-                if sum(work_bag)+weight[j][0] == cap:
+            for j in range(i, len(weight)):
+                if sum(work_bag)+weight[j][0] < cap:
+                    work_bag = np.append(work_bag,weight[j][0])
+                    index.append(j)
+                elif sum(work_bag)+weight[j][0] == cap:
                     work_bag = np.append(work_bag,weight[j][0])
                     index.append(j)
                     break
-                elif sum(work_bag)+weight[j][0] < cap:
-                    work_bag = np.append(work_bag,weight[j][0])
-                    index.append(j)
             if work_cap < sum(work_bag):
                 work_cap = sum(work_bag)
                 best_index = deepcopy(index)
@@ -360,32 +361,12 @@ def get_obj(solution, size, cap, weight, rounded=False):
     return value
 
 
-# doneList = []
-# for i in range(150, 155, 5):
-#     for j in range(2, 3):
-#         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-#         branch_and_bound(file_name)
-#         doneList.append((i, j))
-#         print(doneList)
 # for i in range(20, 155, 5):
 #     for j in range(3):
 #         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
 #         # size, cap, weight = extract_data(file_name)
-#         print(file_name)
-#         percent += branch_and_bound(file_name,)
-        # solution = build_full_packing_solution(size, cap, weight)
-        # # solution1 = build_greedy_solution(size, cap, weight)
-        # solution2 = build_best_fit_solution(size, cap, weight)
+#         # print(file_name)
+#         percent += branch_and_bound(file_name)
 
-        # obj = get_obj(solution, size, cap, weight, True)
-        # # obj1 = get_obj(solution1, size, cap, weight, True)
-        # obj2 = get_obj(solution2, size, cap, weight, True)
-
-        # print("value of the upperbound of supposed best", obj)
-        # # print("value of the upperbound of greedy", obj1)
-        # print("value of the upperbound of bestfit", obj2)
-        # print("value of lb", sum(weight)/cap)
-
-        # print("are solution of greedy and best fit identical ? " + str(i) + "_" + str(j), (solution == solution2).all())
 branch_and_bound(file_name)
-print("percentage of completion : ", percent, (155-20)*3/5) #*100/((155-20)*3/5)
+print("percentage of completion : ", percent, round((155-20)*3/5), str(round(percent*100/((155-20)*3/5)))+"%") #*100/((155-20)*3/5)
