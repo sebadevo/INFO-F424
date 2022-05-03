@@ -3,9 +3,10 @@ from calculator import Calculator
 from copy import deepcopy
 import numpy as np
 from node import Node
+# import sys
 
 
-file_name = "Instances/bin_pack2_245_0.dat"
+file_name = "Instances/bin_pack_50_0.dat"
 
 percent = 0
 
@@ -62,17 +63,8 @@ def extract_data(filename):
 def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    prox = heuristic[1]-ceil(sum(weight)/cap)
-    print("heuristic :",heuristic[1], " LB : ",ceil(sum(weight)/cap), " proximity to LB:", prox)
-    # print("is the heuristic's solution valid ? ", check_valid_sol(heuristic[0], size, cap, weight))
-    if heuristic[1]-ceil(sum(weight)/cap) == 0:
-        return 1
-    print(instance_name)
-    return 0
     if branching_scheme == 0:
-        #depth_first(heuristic[1], instance_name)
-        # leastCost(size, cap, weight)
-        pass
+        depth_first(heuristic[1], instance_name)
     else:
         print("this methode has not been built yet :/")
         
@@ -109,142 +101,137 @@ def get_best_heuristic(size, cap, weight):
             best = heur_list[i][1]
     return elem
 
-def compute_dist(fracs):
+def compute_dist(all_frac, methode):
+    """
+    Can either take the fractionnary value close to an integer value (the closest to 1 or 0), 
+    or it can select the value closest to 1/2.
+    methode closest to int -> 1
+    methode closest to 1/2 -> 2
+
+    all_frac = [elem_1, elem_2, ..., elem_n] 
+    elem_1 = [pos, value]
+    """
     best = 2
     coord = None
-    for i in fracs: 
-        dist = 0.5 - abs(i[1]-0.5)
+    for i in all_frac:  
+        if methode == 1:
+            dist = 0.5 - abs(i[1]-0.5)
+        elif methode == 2: 
+            dist = abs(i[1]-0.5)
         if dist < best: 
             best = dist
             coord = i
-    coord[1] = round(coord[1])
+    coord[1] = round(coord[1]) #If the value is = 1/2 the chance of it being a 1 or a 0 is equiprobable. 
     return coord
 
 
 def depth_first(upperbound, file_name):
     """
     """
-    node_list = []
     calculator = Calculator(file_name)
     calculator.run()
-    root_node = Node(None, upperbound, calculator.get_objective(), None)
-    node_list.append(root_node)
-    while root_node.get_lowerbound != root_node.get_upperbound:
-        selected = select_node_to_expand(node_list)
-        new_nodes = expand_tree_depth_first(selected, calculator)
-        node_list.extend(new_nodes)
-    
+    root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, False)
+    root_node.set_root(root_node)
+    iteration = 0
+    while root_node.get_lowerbound() != root_node.get_upperbound():
+        print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
+        selected = select_node_to_expand(root_node)
+        expand_tree_depth_first(selected, calculator, 2)
+        iteration +=1
 
-
     
-def select_node_to_expand(nodes):
-    return nodes[-1]
+def select_node_to_expand(node):
+    """
+    """
+    childs = node.get_childs()
+    if len(childs):
+        for i in range(len(childs)):
+            if not childs[i].get_is_done():
+                return select_node_to_expand(childs[i])
+    return node
+
                 
     
 
-def expand_tree_depth_first(node, calculator):
+def expand_tree_depth_first(node, calculator, mode=1):
     all_non_int = calculator.getAllNonInt()
-    constr = compute_dist(all_non_int) #return a list with in first pos the value, and sec. pos the pos
-    constraints = node.getConstraints()
-    constraints.append(constr)
-    calculator = Calculator(file_name)
-    calculator.add_constraint_model(constraints)
-    calculator.run()
-    lowerbound = calculator.get_objective()
-    upperbound = None
-    if calculator.checkFinishedProduct():
-        upperbound = lowerbound
-    child = Node(constraints, upperbound, lowerbound, node)
-    node.add_child(child)
+    if len(all_non_int):
+        constr = compute_dist(all_non_int, mode) #return a list with in first the position and the value [(1,2), 1], [(1,2), 0]
+        for i in range(2):
+            constr[1] = abs(constr[1]-i)
+            constraints = node.get_constraints()
+            constraints.append(constr)
+            calculator = Calculator(file_name)
+            calculator.add_constraint_model(constraints)
+            calculator.run()
+            lowerbound = ceil(calculator.get_objective())
+            if lowerbound and lowerbound < node.get_root().get_upperbound():
+                upperbound = None
+                is_done = False
+                if calculator.checkFinishedProduct():
+                    upperbound = lowerbound
+                    is_done = True
+                    print("current solution found with upperbound value : ", upperbound)  
+                child = Node(constraints, upperbound, lowerbound, node, node.get_root(), is_done)
+                node.add_child(child)
+                update_parent(node)
+                prune_tree(node.get_root())
+            else:
+                print("not feasible solution")
+        if len(node.get_childs()) == 0: #Case where none of the childs are possible. 
+            node.toggle_is_done()
 
+            
+
+
+def prune_tree(node):
+    childs = node.get_childs()
+    copy_childs = deepcopy(childs)
+    for i in range(len(childs)):
+        if childs[i].get_lowerbound() > node.get_root().get_upperbound() or childs[i].get_lowerbound() == childs[i].get_upperbound():
+            copy_childs.remove(childs[i])
+        else :
+            prune_tree(childs[i])
+    
+    node.set_childs(copy_childs)
 
     
-# def leastCost(size, cap, weight):
-#     nodesToExpand = []
-#     empty = np.zeros((size, size))
-#     grid = build_solution(size, cap, weight, empty, 0)
-#     upperbound, cost = computeUC(grid)
-#     node = Node(grid, upperbound, cost, 0)
-#     nodesToExpand.append(node)
-#     upper = deepcopy(upperbound)
-#     running = True
-#     solution = None
-#     i = 0
-#     while running:
-#         i += 1
-#         selected = selectNodeToExpand(nodesToExpand)
-#         if i % 10 == 1:
-#             print("I am here: ", selected.getRow(), "  current upper value :", upper,
-#                   "  and cost value (lowerbound) is :", cost, "  and the length of the list of nodes is : ",
-#                   len(nodesToExpand))
-#         if selected.getRow() == size or selected.getUpperbound() == cost:
-#             solution = selected
-#             running = False
-#             break
-#         nodesToExpand.remove(selected)
-#         if selected.getRow() < size:
-#             newExpandedNodes = expandTreeLC(selected, size, cap, weight)
-#             upperbound = getBestUpper(newExpandedNodes)
 
-#             if upperbound < upper:
-#                 upper = upperbound
-#                 nodesToExpand.extend(newExpandedNodes)  # On ajoute toutes les nodes et puis on fait le filtre
-#                 nodesToExpand = removeBadNodes(nodesToExpand, upper)
-#             else:
-#                 newExpandedNodes = removeBadNodes(newExpandedNodes, upper)
-#                 nodesToExpand.extend(newExpandedNodes)
+def update_parent(node):
+    childs = node.get_childs()
+    lb = 9999
+    ub = 9999
+    counter = 0
+    for i in range(len(childs)):
+        if childs[i].get_lowerbound()<lb:
+            lb = childs[i].get_lowerbound()
+            node.set_lowerbound(lb)
+        if childs[i].get_upperbound() is not None and childs[i].get_upperbound() < ub:
+            ub = childs[i].get_upperbound()
+            node.set_upperbound(ub)  
+        if childs[i].get_is_done():
+            counter +=1
+    
+    if counter == len(childs):
+        node.toggle_is_done()
 
-#     print("value : ", solution.getCost(), "  lower bound :", cost)
-
-
-def removeBadNodes(nodes, upper):
-    length = len(nodes)
-    i = 0
-    while i < length:
-        if nodes[i].getUpperbound() > upper + 3:
-            nodes.remove(nodes[i])
-            i -= 1
-            length -= 1
-        i += 1
-    return nodes
-
-
-def getBestUpper(nodes):
-    upper = 9999
-    for node in nodes:
-        if node.getUpperbound() < upper:
-            upper = node.getUpperbound()
-    return upper
-
-
-
-# def expandTreeLC(node, size, cap, weight):
-#     init = node.getSolution()
-#     row = node.getRow()
-#     new_nodes = []
-#     for i in range(size):
-#         new_sol = deepcopy(init)
-#         new_sol[row] = np.zeros(size)
-#         new_sol[row][i] = 1
-#         for j in range(row + 1, size):
-#             new_sol[j] = np.zeros(size)
-#         if check_valid_sol(new_sol, size, cap, weight, row + 1):
-#             new_sol = build_solution(size, cap, weight, new_sol, row + 1)
-#             upperbound, cost = computeUC(new_sol)
-#             new_node = Node(new_sol, upperbound, cost, row + 1)
-#             new_nodes.append(new_node)
-#     return new_nodes
-
+    parent = node.get_parent()
+    if parent is not None:
+        update_parent(parent)
+            
 
 def check_valid_sol(solution, size, cap, weight):
     for col in range(size):
         value = 0
         for row in range(size):
             value += solution[row][col] * weight[row]
-        # if value:
-        #     print(value)
         if value > cap:
             return False
+
+    for row in solution:
+        if sum(row)<1:
+            return False
+
     return True
 
 
@@ -274,12 +261,15 @@ def build_best_fit_solution(size, cap, weight):
     for obj in range(size):
         rest = 1000
         index = 0
+        w = -1
         for sac in range(size):
             if bag[sac] >= weight[obj] and bag[sac]-weight[obj]<rest:
                 rest = bag[sac] - weight[obj]
+                w = weight[obj]
                 index = sac
-        solution[obj][index] = 1
-        bag[index]-=weight[obj]
+        if w != -1:
+            solution[obj][index] = 1
+            bag[index]-=weight[obj]
     return solution   
 
 def build_evenly_fill_solution(size, cap, weight):
@@ -306,38 +296,41 @@ def build_full_packing_solution(size, cap, weight):
     fill a bag as much as possible. 
     It will return the first solution for the root node.  
     """
-    bag = 0
-    temp = []
-    for i in range(size):
-        temp.append([weight[i], i])
-    weight = temp
-    solution = np.zeros((size, size))
-    while len(weight)>0:
-        work_cap = weight[0][0]
-        best_index = [0]
-        for i in range(1, len(weight)):
-            work_bag = np.array([weight[0][0]], dtype=int)
-            index = [0]
-            for j in range(i, len(weight)):
-                if sum(work_bag)+weight[j][0] < cap:
-                    work_bag = np.append(work_bag,weight[j][0])
-                    index.append(j)
-                elif sum(work_bag)+weight[j][0] == cap:
-                    work_bag = np.append(work_bag,weight[j][0])
-                    index.append(j)
-                    break
-            if work_cap < sum(work_bag):
-                work_cap = sum(work_bag)
-                best_index = deepcopy(index)
-                if work_cap == cap:
-                    break
-        a = 0
-        for i in best_index:
-            solution[weight[i-a][1]][bag] = 1
-            weight.pop(i-a)
-            a+=1
-        bag +=1
-    return solution  
+    if np.amax(weight)<=cap: # check if the problem is feasible.
+        bag = 0
+        temp = []
+        for i in range(size):
+            temp.append([weight[i], i])
+        weight = temp
+        solution = np.zeros((size, size))
+        while len(weight)>0:
+            work_cap = weight[0][0]
+            best_index = [0]
+            for i in range(1, len(weight)):
+                work_bag = np.array([weight[0][0]], dtype=int)
+                index = [0]
+                for j in range(i, len(weight)):
+                    if sum(work_bag)+weight[j][0] < cap:
+                        work_bag = np.append(work_bag,weight[j][0])
+                        index.append(j)
+                    elif sum(work_bag)+weight[j][0] == cap:
+                        work_bag = np.append(work_bag,weight[j][0])
+                        index.append(j)
+                        break
+                if work_cap < sum(work_bag):
+                    work_cap = sum(work_bag)
+                    best_index = deepcopy(index)
+                    if work_cap == cap:
+                        break
+            a = 0
+            for i in best_index:
+                solution[weight[i-a][1]][bag] = 1
+                weight.pop(i-a)
+                a+=1
+            bag +=1
+        return solution  
+    else :
+        return np.zeros((size, size))
 
 
 def getNextAvailableBag(bag, size, init=0):
@@ -359,6 +352,7 @@ def get_obj(solution, size, cap, weight, rounded=False):
     else:
         value = sum(bag)
     return value
+
 beg = 20
 end = 155
 # for i in range(beg, end, 5):
@@ -369,9 +363,10 @@ end = 155
 #         percent += branch_and_bound(file_name)
 
 branch_and_bound(file_name)
-print("percentage of completion : ", percent, round((end-beg)*3/5), str(round(percent*100/((end-beg)*3/5)))+"%") #*100/((155-20)*3/5)
+#print("percentage of completion : ", percent, round((end-beg)*3/5), str(round(percent*100/((end-beg)*3/5)))+"%") #*100/((155-20)*3/5)
+
+
 
 # calculator = Calculator(file_name)
-
 # calculator.run()
 # calculator.affichage_result()

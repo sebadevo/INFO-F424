@@ -1,11 +1,27 @@
+from copy import deepcopy
+
 class Node:
-    def __init__(self, constraints, upperbound, lowerbound, parent):
+    def __init__(self, constraints, upperbound, lowerbound, parent, root, is_done):
         self.upperbound = upperbound
         self.lowerbound = lowerbound
         self.constraints = constraints
         self.parent = parent
+        self.root = root
         self.childs = []
-        
+        self.is_done = is_done
+
+    def get_root(self):
+        return self.root
+
+    def set_root(self, root):
+        self.root = root
+    
+    def get_is_done(self):
+        return self.is_done
+    
+    def toggle_is_done(self):
+        self.is_done = not self.is_done
+    
     def get_parent(self):
         return self.parent
 
@@ -17,6 +33,9 @@ class Node:
     
     def add_child(self, child):
         self.childs.append(child)
+    
+    def set_childs(self, childs):
+        self.childs = childs
                 
     def get_upperbound(self):
         return self.upperbound

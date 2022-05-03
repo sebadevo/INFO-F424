@@ -39,12 +39,12 @@ class Calculator:
         def x_constraint_rule(m, p):
             return sum(m.x[p, b] for b in m.b) == 1
 
-        @self.model.Constraint(self.model.b)
-        def y_constraint_rule(m, b):
-            if b+1 in m.b:
-                return m.y[b] >= m.y[b+1]
-            else:
-                return m.y[1] >= 0
+        # @self.model.Constraint(self.model.b)
+        # def y_constraint_rule(m, b):
+        #     if b+1 in m.b:
+        #         return m.y[b] >= m.y[b+1]
+        #     else:
+        #         return m.y[1] >= 0
 
         # def bud_rule(m, b):
         #     return m.y[b] >= m.y[b+1]
@@ -75,7 +75,9 @@ class Calculator:
         for j in self.instance.x:
             if pyo.value(self.instance.x[j]) != 0:
                 print(self.instance.x[j], " of value ", pyo.value(self.instance.x[j]))
+        print("test1")
         print(pyo.value(self.instance.obj_expression))
+        print("test2")
         for i in self.instance.y:
             if pyo.value(self.instance.y[i]) != 0:
                 print(self.instance.y[i], " of value ", pyo.value(self.instance.y[i]))
