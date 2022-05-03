@@ -5,7 +5,7 @@ import numpy as np
 from node import Node
 
 
-file_name = "Instances/bin_pack2_245_1.dat"
+file_name = "Instances/bin_pack2_245_0.dat"
 
 percent = 0
 
@@ -64,7 +64,7 @@ def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, ti
     heuristic = get_best_heuristic(size, cap, weight)
     prox = heuristic[1]-ceil(sum(weight)/cap)
     print("heuristic :",heuristic[1], " LB : ",ceil(sum(weight)/cap), " proximity to LB:", prox)
-    print("is the heuristic's solution valid ? ", check_valid_sol(heuristic[0], size, cap, weight))
+    # print("is the heuristic's solution valid ? ", check_valid_sol(heuristic[0], size, cap, weight))
     if heuristic[1]-ceil(sum(weight)/cap) == 0:
         return 1
     print(instance_name)
@@ -93,9 +93,9 @@ def get_best_heuristic(size, cap, weight):
     print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
     heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
-    sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
-    print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
-    heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
+    # sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
+    # print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
+    # heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
 
     sol_full_packing = build_full_packing_solution(size, cap, weight)
     print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
@@ -241,8 +241,8 @@ def check_valid_sol(solution, size, cap, weight):
         value = 0
         for row in range(size):
             value += solution[row][col] * weight[row]
-        if value:
-            print(value)
+        # if value:
+        #     print(value)
         if value > cap:
             return False
     return True
@@ -359,9 +359,9 @@ def get_obj(solution, size, cap, weight, rounded=False):
     else:
         value = sum(bag)
     return value
-
-
-# for i in range(20, 155, 5):
+beg = 20
+end = 155
+# for i in range(beg, end, 5):
 #     for j in range(3):
 #         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
 #         # size, cap, weight = extract_data(file_name)
@@ -369,4 +369,9 @@ def get_obj(solution, size, cap, weight, rounded=False):
 #         percent += branch_and_bound(file_name)
 
 branch_and_bound(file_name)
-print("percentage of completion : ", percent, round((155-20)*3/5), str(round(percent*100/((155-20)*3/5)))+"%") #*100/((155-20)*3/5)
+print("percentage of completion : ", percent, round((end-beg)*3/5), str(round(percent*100/((end-beg)*3/5)))+"%") #*100/((155-20)*3/5)
+
+# calculator = Calculator(file_name)
+
+# calculator.run()
+# calculator.affichage_result()
