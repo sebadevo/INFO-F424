@@ -1,45 +1,58 @@
+from logging import RootLogger
 from math import ceil
+from sre_constants import BRANCH
 from calculator import Calculator
 from copy import deepcopy
 import numpy as np
 from node import Node
-# import sys
 
 
 file_name = "Instances/bin_pack_50_0.dat"
 
-percent = 0
+BRANCH = {
+    "DEPTH_FIRST" : 0,
+    "BREADTH_FIRST" : 1,
+    "MIX" : 2
+}
 
-def runpart1():
-    corrected = []
-    calculator = Calculator(file_name)
+VARIABLE = {
+    "ROUNDED" : 0,
+    "HALF" : 1,
+    "FULL" : 2
+}
 
-    calculator.run()
-    calculator.affichage_result()
-    bags = []
-    i = 0
-    while not calculator.checkFinishedProduct():
-        pos, value = calculator.getNonInt()
-        if pos[1] in bags:
-            value = 0
-        else:
-            if value < 0.5:
-                value = 0
-            else:
-                value = 1
-                bags.append(pos[1])
-        corrected.append([pos, value])
-        print("SIZE of corrected: ", len(corrected))
-        calculator = Calculator(file_name)
-        calculator.add_constraint_model(corrected)
-        print(corrected)
-        calculator.run()
-        calculator.affichage_working_progress()
-        i += 1
-        if i % 100 == 1:
-            print("I AM DONE, BABY", i)
 
-    calculator.affichage_result()
+
+# def runpart1():
+#     corrected = []
+#     calculator = Calculator(file_name)
+
+#     calculator.run()
+#     calculator.affichage_result()
+#     bags = []
+#     i = 0
+#     while not calculator.checkFinishedProduct():
+#         pos, value = calculator.getNonInt()
+#         if pos[1] in bags:
+#             value = 0
+#         else:
+#             if value < 0.5:
+#                 value = 0
+#             else:
+#                 value = 1
+#                 bags.append(pos[1])
+#         corrected.append([pos, value])
+#         print("SIZE of corrected: ", len(corrected))
+#         calculator = Calculator(file_name)
+#         calculator.add_constraint_model(corrected)
+#         print(corrected)
+#         calculator.run()
+#         calculator.affichage_working_progress()
+#         i += 1
+#         if i % 100 == 1:
+#             print("I AM DONE, BABY", i)
+
+#     calculator.affichage_result()
 
 
 def extract_data(filename):
@@ -60,13 +73,18 @@ def extract_data(filename):
     return size, cap, weight
 
 
-def branch_and_bound(instance_name, branching_scheme=0, valid_inequalities=0, time_limit=600):
+def branch_and_bound(instance_name, branching_scheme=0, variable_selection_scheme=0, valid_inequalities=[], time_limit=600):
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    if branching_scheme == 0:
-        depth_first(heuristic[1], instance_name)
-    else:
-        print("this methode has not been built yet :/")
+    root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme)
+    iteration = 0
+    while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done():
+        if not iteration % 10:
+            print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
+        selected = select_node_to_expand(root_node, branching_scheme)
+        expand_tree(selected, variable_selection_scheme)
+        iteration += 1
+    print("the algo is done, here is the value of the upperbound : ", root_node.get_upperbound())
         
 def get_best_heuristic(size, cap, weight):
     """
@@ -75,7 +93,6 @@ def get_best_heuristic(size, cap, weight):
     ex : best = [sol, obj]
     """
     heur_list = []
-    
 
     sol_best_fit = build_best_fit_solution(size, cap, weight)
     print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
@@ -85,9 +102,9 @@ def get_best_heuristic(size, cap, weight):
     print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
     heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
-    # sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
-    # print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
-    # heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
+    sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
+    print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
+    heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
 
     sol_full_packing = build_full_packing_solution(size, cap, weight)
     print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
@@ -101,123 +118,153 @@ def get_best_heuristic(size, cap, weight):
             best = heur_list[i][1]
     return elem
 
-def compute_dist(all_frac, methode):
-    """
-    Can either take the fractionnary value close to an integer value (the closest to 1 or 0), 
-    or it can select the value closest to 1/2.
-    methode closest to int -> 1
-    methode closest to 1/2 -> 2
-
-    all_frac = [elem_1, elem_2, ..., elem_n] 
-    elem_1 = [pos, value]
-    """
-    best = 2
-    coord = None
-    for i in all_frac:  
-        if methode == 1:
-            dist = 0.5 - abs(i[1]-0.5)
-        elif methode == 2: 
-            dist = abs(i[1]-0.5)
-        if dist < best: 
-            best = dist
-            coord = i
-    coord[1] = round(coord[1]) #If the value is = 1/2 the chance of it being a 1 or a 0 is equiprobable. 
-    return coord
 
 
-def depth_first(upperbound, file_name):
-    """
-    """
+def build_root_node(upperbound, file_name, variable_selection_scheme):
     calculator = Calculator(file_name)
     calculator.run()
-    root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, False)
+    non_int = calculator.get_non_int(variable_selection_scheme)
+    root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, non_int, 0, False)
     root_node.set_root(root_node)
-    iteration = 0
-    while root_node.get_lowerbound() != root_node.get_upperbound():
-        print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
-        selected = select_node_to_expand(root_node)
-        expand_tree_depth_first(selected, calculator, 2)
-        iteration +=1
+    return root_node
 
+
+def select_node_to_expand(node, branching_scheme):
+    selected = None
+
+    if branching_scheme == 0:
+        selected = select_node_to_expand_depth_first(node)
+    elif branching_scheme == 1:
+        selected = select_node_to_expand_breadth_first(node)
+    else :
+        print("Sorry this branching scheme has not been implemented yet.")
+        exit(0)
+    return selected
     
-def select_node_to_expand(node):
+def select_node_to_expand_depth_first(node):
     """
+    Select the left most node to expand if it has not been visited yet.
     """
     childs = node.get_childs()
     if len(childs):
         for i in range(len(childs)):
             if not childs[i].get_is_done():
-                return select_node_to_expand(childs[i])
+                return select_node_to_expand_depth_first(childs[i])
     return node
 
-                
-    
+def select_node_to_expand_breadth_first(node):
+    """
+    TODO
+    """
+    childs = node.get_childs()
+    if len(childs):
+        for i in range(len(childs)):    
+            if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
+                return select_node_to_expand_breadth_first(childs[i])   
+        for i in range(len(childs)):
+            if not childs[i].get_is_done():
+                return select_node_to_expand_breadth_first(childs[i])
+    return node
 
-def expand_tree_depth_first(node, calculator, mode=1):
-    all_non_int = calculator.getAllNonInt()
-    if len(all_non_int):
-        constr = compute_dist(all_non_int, mode) #return a list with in first the position and the value [(1,2), 1], [(1,2), 0]
+def select_node_to_expand_breadth_first(node, depth):
+    """
+    TODO
+    """
+    
+    childs = node.get_childs()
+    if len(childs) and depth:
+        for i in range(len(childs)):    
+            if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
+                return select_node_to_expand_breadth_first(childs[i])   
+        for i in range(len(childs)):
+            if not childs[i].get_is_done():
+                return select_node_to_expand_breadth_first(childs[i])
+    return node
+
+
+                
+def expand_tree(node, variable_selection_scheme):
+    if len(node.get_non_int()):
+        constr = node.get_non_int() #return a list with in first the position and the value [(1,2), 1], [(1,2), 0]
         for i in range(2):
             constr[1] = abs(constr[1]-i)
-            constraints = node.get_constraints()
+            constraints = deepcopy(node.get_constraints())
             constraints.append(constr)
             calculator = Calculator(file_name)
             calculator.add_constraint_model(constraints)
             calculator.run()
             lowerbound = ceil(calculator.get_objective())
-            if lowerbound and lowerbound < node.get_root().get_upperbound():
+            if lowerbound and lowerbound <= node.get_root().get_upperbound():
+                print("im feasible, and my depth is : ", node.get_depth()+1)
+                non_int = calculator.get_non_int(variable_selection_scheme)
                 upperbound = None
                 is_done = False
                 if calculator.checkFinishedProduct():
-                    upperbound = lowerbound
+                    upperbound = deepcopy(lowerbound)
                     is_done = True
                     print("current solution found with upperbound value : ", upperbound)  
-                child = Node(constraints, upperbound, lowerbound, node, node.get_root(), is_done)
+                child = Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), node.get_depth()+1 ,deepcopy(is_done))
                 node.add_child(child)
-                update_parent(node)
-                prune_tree(node.get_root())
             else:
-                print("not feasible solution")
+                if lowerbound > node.get_root().get_upperbound():
+                    print('ich bin bad solution')
+                else :
+                    print("not feasible solution")  
+
         if len(node.get_childs()) == 0: #Case where none of the childs are possible. 
-            node.toggle_is_done()
+            node.set_is_done(True)
+            update_parent(node.get_parent())
+            print("I am indeed done")    
+        else:
+            update_parent(node)
+        
 
-            
-
-
-def prune_tree(node):
-    childs = node.get_childs()
-    copy_childs = deepcopy(childs)
-    for i in range(len(childs)):
-        if childs[i].get_lowerbound() > node.get_root().get_upperbound() or childs[i].get_lowerbound() == childs[i].get_upperbound():
-            copy_childs.remove(childs[i])
-        else :
-            prune_tree(childs[i])
+def update_bounds(node):
+    """
+    The node received by argument will always be a parent node, meaning it will always have childs. 
+    But the number of childs is not fixed, it can be 1 or 2.
+    """
+    ub=9999
+    lb=9999
+    childs = node.get_childs()   
+    for i in range(len(childs)):   
+        if childs[i].get_lowerbound()<lb: #Comparer les 2 lowerbound et la donner à parent. 
+            lb = deepcopy(childs[i].get_lowerbound())
+        if childs[i].get_upperbound() is not None and childs[i].get_upperbound() < ub:
+            ub = deepcopy(childs[i].get_upperbound())
+    flag = False
     
-    node.set_childs(copy_childs)
+    if ub != 9999 and ub != node.get_upperbound():
+        node.set_upperbound(ub)  
+        flag = True
 
-    
+    if lb != 9999 and lb != node.get_lowerbound():
+        node.set_lowerbound(lb)
+        flag = True
+
+    if flag :
+        parent = node.get_parent()
+        if parent is not None:
+            update_bounds(parent)
+
+def update_state(node):
+    """
+    If the node has both its childs as 'is_done=True', then we will set it to 'is_done=True'.
+    """
+    flag = True
+    childs = node.get_childs() 
+    for i in range(len(childs)):   
+        if not childs[i].get_is_done():
+            flag = False
+    if flag:
+        node.set_is_done(True)
+        parent = node.get_parent()
+        if parent is not None:
+            update_state(parent)
 
 def update_parent(node):
-    childs = node.get_childs()
-    lb = 9999
-    ub = 9999
-    counter = 0
-    for i in range(len(childs)):
-        if childs[i].get_lowerbound()<lb:
-            lb = childs[i].get_lowerbound()
-            node.set_lowerbound(lb)
-        if childs[i].get_upperbound() is not None and childs[i].get_upperbound() < ub:
-            ub = childs[i].get_upperbound()
-            node.set_upperbound(ub)  
-        if childs[i].get_is_done():
-            counter +=1
-    
-    if counter == len(childs):
-        node.toggle_is_done()
-
-    parent = node.get_parent()
-    if parent is not None:
-        update_parent(parent)
+    update_bounds(node)
+    update_state(node)
             
 
 def check_valid_sol(solution, size, cap, weight):
@@ -332,13 +379,11 @@ def build_full_packing_solution(size, cap, weight):
     else :
         return np.zeros((size, size))
 
-
-def getNextAvailableBag(bag, size, init=0):
-    for i in range(init, size):
-        if bag[i] < 1:
-            return i
-
 def get_obj(solution, size, cap, weight, rounded=False):
+    """
+    Computes the objective value of a given solution of a problem.
+    :return: (Int) the Objective value
+    """
     bag = np.zeros(size)
     for col in range(size):
         for rows in range(size):
@@ -348,25 +393,8 @@ def get_obj(solution, size, cap, weight, rounded=False):
         for i in range(size):
             if bag[i]>0:
                 value+=1
-        #value = sum(np.ceil(bag))
     else:
         value = sum(bag)
     return value
 
-beg = 20
-end = 155
-# for i in range(beg, end, 5):
-#     for j in range(3):
-#         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-#         # size, cap, weight = extract_data(file_name)
-#         # print(file_name)
-#         percent += branch_and_bound(file_name)
-
-branch_and_bound(file_name)
-#print("percentage of completion : ", percent, round((end-beg)*3/5), str(round(percent*100/((end-beg)*3/5)))+"%") #*100/((155-20)*3/5)
-
-
-
-# calculator = Calculator(file_name)
-# calculator.run()
-# calculator.affichage_result()
+branch_and_bound(file_name, BRANCH["BREADTH_FIRST"], VARIABLE["HALF"])

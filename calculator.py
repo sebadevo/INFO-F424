@@ -38,17 +38,6 @@ class Calculator:
         @self.model.Constraint(self.model.p)
         def x_constraint_rule(m, p):
             return sum(m.x[p, b] for b in m.b) == 1
-
-        # @self.model.Constraint(self.model.b)
-        # def y_constraint_rule(m, b):
-        #     if b+1 in m.b:
-        #         return m.y[b] >= m.y[b+1]
-        #     else:
-        #         return m.y[1] >= 0
-
-        # def bud_rule(m, b):
-        #     return m.y[b] >= m.y[b+1]
-        # self.model.bud_rule = pyo.Constraint(self.model.b, rule=bud_rule)
         
 
         """ 6. PARAMÊTRE DU SOLVEUR """
@@ -107,12 +96,48 @@ class Calculator:
                 self.instance.constraint_list.add(self.instance.x[elem[0]]<=elem[1])
 
 
-    def getNonInt(self):
+    # def getNonInt(self):
+    #     for j in self.instance.x:
+    #         if pyo.value(self.instance.x[j]) < 1 and pyo.value(self.instance.x[j]) > 0.001:
+    #             pos = j
+    #             value = pyo.value(self.instance.x[j])
+    #             return pos, value
+
+    def get_non_int(self, variable_selection_scheme):
+        list_non_int = []
         for j in self.instance.x:
-            if pyo.value(self.instance.x[j]) < 1 and pyo.value(self.instance.x[j]) > 0.001:
+            if pyo.value(self.instance.x[j]) < 0.99 and pyo.value(self.instance.x[j]) > 0.01:
                 pos = j
                 value = pyo.value(self.instance.x[j])
-                return pos, value
+                list_non_int.append([pos, value])
+        return self.compute_dist(list_non_int, variable_selection_scheme)
+
+    def compute_dist(self, all_frac, variable_selection_scheme):
+        """
+        Can either take the fractionnary value close to an integer value (the closest to 1 or 0), 
+        or it can select the value closest to 1/2.
+        variable_selection_scheme closest to int (either 1 or 0) -> 0
+        variable_selection_scheme closest to 1/2 -> 1
+        variable_selection_scheme closest to 1 -> 2
+
+        all_frac = [elem_1, elem_2, ..., elem_n] 
+        elem_1 = [pos, value]
+        """
+        best = 2
+        coord = []
+        for i in all_frac:  
+            if variable_selection_scheme == 0:
+                dist = 0.5 - abs(i[1]-0.5)
+            elif variable_selection_scheme == 1: 
+                dist = abs(i[1]-0.5)
+            elif variable_selection_scheme == 2:
+                dist = abs(i[1]-1)
+            if dist < best: 
+                best = dist
+                coord = i
+        if len(coord):
+            coord[1] = round(coord[1]) #If the value is = 1/2 the chance of it being a 1 or a 0 is equiprobable. 
+        return coord
 
     def getAllNonInt(self):
         list_non_int = []
