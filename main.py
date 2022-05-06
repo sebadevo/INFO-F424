@@ -7,7 +7,7 @@ import numpy as np
 from node import Node
 
 
-file_name = "Instances/bin_pack_50_0.dat"
+file_name = "Instances/bin_pack_50_1.dat"
 
 BRANCH = {
     "DEPTH_FIRST" : 0,
@@ -82,7 +82,7 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
         if not iteration % 10:
             print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
         selected = select_node_to_expand(root_node, branching_scheme)
-        expand_tree(selected, variable_selection_scheme)
+        expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
     print("the algo is done, here is the value of the upperbound : ", root_node.get_upperbound())
         
@@ -94,21 +94,21 @@ def get_best_heuristic(size, cap, weight):
     """
     heur_list = []
 
-    sol_best_fit = build_best_fit_solution(size, cap, weight)
-    print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
-    heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
+    # sol_best_fit = build_best_fit_solution(size, cap, weight)
+    # print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
+    # heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
 
-    sol_greedy = build_greedy_solution(size, cap, weight)
-    print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
-    heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
+    # sol_greedy = build_greedy_solution(size, cap, weight)
+    # print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
+    # heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
     sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
     print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
     heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
 
-    sol_full_packing = build_full_packing_solution(size, cap, weight)
-    print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
-    heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
+    # sol_full_packing = build_full_packing_solution(size, cap, weight)
+    # print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
+    # heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
     
     best = 9999
     elem = []
@@ -134,8 +134,8 @@ def select_node_to_expand(node, branching_scheme):
 
     if branching_scheme == 0:
         selected = select_node_to_expand_depth_first(node)
-    elif branching_scheme == 1:
-        selected = select_node_to_expand_breadth_first(node)
+    # elif branching_scheme == 1:
+        # selected = select_node_to_expand_breadth_first(node)
     else :
         print("Sorry this branching scheme has not been implemented yet.")
         exit(0)
@@ -152,38 +152,24 @@ def select_node_to_expand_depth_first(node):
                 return select_node_to_expand_depth_first(childs[i])
     return node
 
-def select_node_to_expand_breadth_first(node):
-    """
-    TODO
-    """
-    childs = node.get_childs()
-    if len(childs):
-        for i in range(len(childs)):    
-            if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
-                return select_node_to_expand_breadth_first(childs[i])   
-        for i in range(len(childs)):
-            if not childs[i].get_is_done():
-                return select_node_to_expand_breadth_first(childs[i])
-    return node
-
-def select_node_to_expand_breadth_first(node, depth):
-    """
-    TODO
-    """
+# def select_node_to_expand_breadth_first(node, depth):
+#     """
+#     TODO
+#     """
     
-    childs = node.get_childs()
-    if len(childs) and depth:
-        for i in range(len(childs)):    
-            if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
-                return select_node_to_expand_breadth_first(childs[i])   
-        for i in range(len(childs)):
-            if not childs[i].get_is_done():
-                return select_node_to_expand_breadth_first(childs[i])
-    return node
+#     childs = node.get_childs()
+#     if len(childs) and depth:
+#         for i in range(len(childs)):    
+#             if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
+#                 return select_node_to_expand_breadth_first(childs[i])   
+#         for i in range(len(childs)):
+#             if not childs[i].get_is_done():
+#                 return select_node_to_expand_breadth_first(childs[i])
+#     return node
 
 
                 
-def expand_tree(node, variable_selection_scheme):
+def expand_tree(node, variable_selection_scheme, size, cap, weight):
     if len(node.get_non_int()):
         constr = node.get_non_int() #return a list with in first the position and the value [(1,2), 1], [(1,2), 0]
         for i in range(2):
@@ -203,6 +189,9 @@ def expand_tree(node, variable_selection_scheme):
                     upperbound = deepcopy(lowerbound)
                     is_done = True
                     print("current solution found with upperbound value : ", upperbound)  
+                else :
+                    upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
+                    print("rebuilded solution with upperbound value : ", upperbound)
                 child = Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), node.get_depth()+1 ,deepcopy(is_done))
                 node.add_child(child)
             else:
@@ -397,4 +386,4 @@ def get_obj(solution, size, cap, weight, rounded=False):
         value = sum(bag)
     return value
 
-branch_and_bound(file_name, BRANCH["BREADTH_FIRST"], VARIABLE["HALF"])
+branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], VARIABLE["FULL"])

@@ -1,5 +1,5 @@
 import pyomo.environ as pyo
-
+import numpy as np
 TIME_LIMIT = 10
 
 class Calculator:
@@ -96,12 +96,12 @@ class Calculator:
                 self.instance.constraint_list.add(self.instance.x[elem[0]]<=elem[1])
 
 
-    # def getNonInt(self):
-    #     for j in self.instance.x:
-    #         if pyo.value(self.instance.x[j]) < 1 and pyo.value(self.instance.x[j]) > 0.001:
-    #             pos = j
-    #             value = pyo.value(self.instance.x[j])
-    #             return pos, value
+    def getNonInt(self):
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]) < 1 and pyo.value(self.instance.x[j]) > 0.001:
+                pos = j
+                value = pyo.value(self.instance.x[j])
+                return pos, value
 
     def get_non_int(self, variable_selection_scheme):
         list_non_int = []
@@ -147,6 +147,40 @@ class Calculator:
                 value = pyo.value(self.instance.x[j])
                 list_non_int.append([pos, value])
         return list_non_int
+
+
+    def get_one_values(self):
+        list_non_int = []
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]) == 1:
+                pos = j
+                list_non_int.append(pos)
+        return list_non_int
+
+    def compute_int_solution(self, size, cap, weight):
+        fixed_values = self.get_one_values()
+        bag = [cap for i in range(size)]
+        solution = np.zeros((size, size))
+        obj = [i for i in range(size)]
+        for pos in fixed_values:
+            solution[pos] = 1
+            bag[pos[1]] -= weight[pos[0]]
+            obj.remove(pos[0])
+
+        for o in obj :
+            for sac in range(size):
+                if bag[sac] >= weight[o]:
+                    solution[o][sac] = 1
+                    bag[sac]-=weight[o]           
+                    break
+
+        used = sum(solution)
+        up = 0
+        for i in used:
+            if i >0:
+                up +=1
+        return up
+
 
     def get_objective(self):
         return pyo.value(self.instance.obj_expression)
