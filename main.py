@@ -7,7 +7,7 @@ import numpy as np
 from node import Node
 
 
-file_name = "Instances/bin_pack_50_1.dat"
+file_name = "Instances/bin_pack_50_0.dat"
 
 BRANCH = {
     "DEPTH_FIRST" : 0,
