@@ -2,6 +2,17 @@ from copy import deepcopy
 
 class Node:
     def __init__(self, constraints, upperbound, lowerbound, parent, root, non_int, depth, is_done):
+        """
+
+        :param constraints:
+        :param upperbound:
+        :param lowerbound:
+        :param parent:
+        :param root:
+        :param non_int:
+        :param depth:
+        :param is_done:
+        """
         self.upperbound = upperbound
         self.lowerbound = lowerbound
         self.constraints = constraints

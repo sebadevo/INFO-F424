@@ -1,6 +1,4 @@
-from logging import RootLogger
 from math import ceil
-from sre_constants import BRANCH
 from calculator import Calculator
 from copy import deepcopy
 import numpy as np
@@ -21,41 +19,12 @@ VARIABLE = {
     "FULL" : 2
 }
 
-
-
-# def runpart1():
-#     corrected = []
-#     calculator = Calculator(file_name)
-
-#     calculator.run()
-#     calculator.affichage_result()
-#     bags = []
-#     i = 0
-#     while not calculator.checkFinishedProduct():
-#         pos, value = calculator.getNonInt()
-#         if pos[1] in bags:
-#             value = 0
-#         else:
-#             if value < 0.5:
-#                 value = 0
-#             else:
-#                 value = 1
-#                 bags.append(pos[1])
-#         corrected.append([pos, value])
-#         print("SIZE of corrected: ", len(corrected))
-#         calculator = Calculator(file_name)
-#         calculator.add_constraint_model(corrected)
-#         print(corrected)
-#         calculator.run()
-#         calculator.affichage_working_progress()
-#         i += 1
-#         if i % 100 == 1:
-#             print("I AM DONE, BABY", i)
-
-#     calculator.affichage_result()
-
-
 def extract_data(filename):
+    """
+
+    :param filename:
+    :return:
+    """
     empty_list = []
     with open(filename) as datFile:
         for data in datFile:
@@ -74,6 +43,15 @@ def extract_data(filename):
 
 
 def branch_and_bound(instance_name, branching_scheme=0, variable_selection_scheme=0, valid_inequalities=[], time_limit=600):
+    """
+
+    :param instance_name:
+    :param branching_scheme:
+    :param variable_selection_scheme:
+    :param valid_inequalities:
+    :param time_limit:
+    :return:
+    """
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
     root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme)
@@ -84,31 +62,35 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
         selected = select_node_to_expand(root_node, branching_scheme)
         expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
-    print("the algo is done, here is the value of the upperbound : ", root_node.get_upperbound())
+    print("the algo is done, the objective value is :", root_node.get_upperbound(), " and initial lowerbound is :", ceil(sum(weight)/cap))
         
 def get_best_heuristic(size, cap, weight):
     """
-    Will select the best solution among all the ones proposed by the heuristics. 
-    Return: a list with the the solution and its objective value 
+    Will select the best solution among all the ones proposed by the heuristics.
+    Return: a list with the the solution and its objective value
     ex : best = [sol, obj]
+    :param size:
+    :param cap:
+    :param weight:
+    :return:
     """
     heur_list = []
 
-    # sol_best_fit = build_best_fit_solution(size, cap, weight)
-    # print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
-    # heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
+    sol_best_fit = build_best_fit_solution(size, cap, weight)
+    print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
+    heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
 
-    # sol_greedy = build_greedy_solution(size, cap, weight)
-    # print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
-    # heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
+    sol_greedy = build_greedy_solution(size, cap, weight)
+    print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
+    heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
     sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
     print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
     heur_list.append([sol_evenly_fill, get_obj(sol_evenly_fill, size, cap, weight, True)])
 
-    # sol_full_packing = build_full_packing_solution(size, cap, weight)
-    # print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
-    # heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
+    sol_full_packing = build_full_packing_solution(size, cap, weight)
+    print("full packing : ", get_obj(sol_full_packing, size, cap, weight, True))
+    heur_list.append([sol_full_packing, get_obj(sol_full_packing, size, cap, weight, True)])
     
     best = 9999
     elem = []
@@ -121,6 +103,13 @@ def get_best_heuristic(size, cap, weight):
 
 
 def build_root_node(upperbound, file_name, variable_selection_scheme):
+    """
+
+    :param upperbound:
+    :param file_name:
+    :param variable_selection_scheme:
+    :return:
+    """
     calculator = Calculator(file_name)
     calculator.run()
     non_int = calculator.get_non_int(variable_selection_scheme)
@@ -130,6 +119,12 @@ def build_root_node(upperbound, file_name, variable_selection_scheme):
 
 
 def select_node_to_expand(node, branching_scheme):
+    """
+
+    :param node:
+    :param branching_scheme:
+    :return:
+    """
     selected = None
 
     if branching_scheme == 0:
@@ -142,6 +137,11 @@ def select_node_to_expand(node, branching_scheme):
     return selected
     
 def select_node_to_expand_depth_first(node):
+    """
+
+    :param node:
+    :return:
+    """
     """
     Select the left most node to expand if it has not been visited yet.
     """
@@ -170,6 +170,15 @@ def select_node_to_expand_depth_first(node):
 
                 
 def expand_tree(node, variable_selection_scheme, size, cap, weight):
+    """
+
+    :param node:
+    :param variable_selection_scheme:
+    :param size:
+    :param cap:
+    :param weight:
+    :return:
+    """
     if len(node.get_non_int()):
         constr = node.get_non_int() #return a list with in first the position and the value [(1,2), 1], [(1,2), 0]
         for i in range(2):
@@ -181,7 +190,7 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
             calculator.run()
             lowerbound = ceil(calculator.get_objective())
             if lowerbound and lowerbound <= node.get_root().get_upperbound():
-                print("im feasible, and my depth is : ", node.get_depth()+1)
+                # print("im feasible, and my depth is : ", node.get_depth()+1)
                 non_int = calculator.get_non_int(variable_selection_scheme)
                 upperbound = None
                 is_done = False
@@ -191,7 +200,7 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
                     print("current solution found with upperbound value : ", upperbound)  
                 else :
                     upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
-                    print("rebuilded solution with upperbound value : ", upperbound)
+                    # print("rebuilded solution with upperbound value : ", upperbound)
                 child = Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), node.get_depth()+1 ,deepcopy(is_done))
                 node.add_child(child)
             else:
@@ -238,7 +247,8 @@ def update_bounds(node):
 
 def update_state(node):
     """
-    If the node has both its childs as 'is_done=True', then we will set it to 'is_done=True'.
+    If the node has both its childs as 'is_done=True', then we will set it to 'is_done=True'. 
+    If it is set to True, we apply the function to the parent node in a recursive manner.
     """
     flag = True
     childs = node.get_childs() 
@@ -257,6 +267,9 @@ def update_parent(node):
             
 
 def check_valid_sol(solution, size, cap, weight):
+    """
+    Will return true if the solution build is valid, false otherwise.
+    """
     for col in range(size):
         value = 0
         for row in range(size):
@@ -387,3 +400,15 @@ def get_obj(solution, size, cap, weight, rounded=False):
     return value
 
 branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], VARIABLE["FULL"])
+
+beg = 20
+end = 150
+
+
+# for i in range(beg, end+5, 5):
+#     for j in range(3):
+#         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
+#         size, cap, weight = extract_data(file_name)
+#         heuristic = get_best_heuristic(size, cap, weight)
+#         with open('heuristics_solution.txt', 'a') as f:
+#             f.write(file_name+": heuristic="+str(heuristic[1])+" diff_with_lb="+str(heuristic[1]-ceil(sum(weight)/cap))+"\n")
