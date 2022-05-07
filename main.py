@@ -1,5 +1,7 @@
 from math import ceil
-from calculator import Calculator
+
+from time import time
+from calculator import TIME_LIMIT, Calculator
 from copy import deepcopy
 import numpy as np
 from node import Node
@@ -52,16 +54,21 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
     :param time_limit:
     :return:
     """
+    start = time()
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme)
+    root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme, size)
     iteration = 0
+
     while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done():
         if not iteration % 10:
             print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
         selected = select_node_to_expand(root_node, branching_scheme)
         expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
+        if time() - start > time_limit:
+            print("the algo took to long best solution is :", heuristic[1])
+            exit(0)
     print("the algo is done, the objective value is :", root_node.get_upperbound(), " and initial lowerbound is :", ceil(sum(weight)/cap))
         
 def get_best_heuristic(size, cap, weight):
@@ -102,7 +109,7 @@ def get_best_heuristic(size, cap, weight):
 
 
 
-def build_root_node(upperbound, file_name, variable_selection_scheme):
+def build_root_node(upperbound, file_name, variable_selection_scheme, size):
     """
 
     :param upperbound:
@@ -195,9 +202,9 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
                 upperbound = None
                 is_done = False
                 if calculator.checkFinishedProduct():
-                    upperbound = deepcopy(lowerbound)
+                    upperbound = deepcopy(calculator.get_int_objective(size))
                     is_done = True
-                    print("current solution found with upperbound value : ", upperbound)  
+                    print("current solution found with upperbound value :", upperbound, "the lowerbound is :", lowerbound, "my depth =", node.get_depth()+1)  
                 else :
                     upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
                     # print("rebuilded solution with upperbound value : ", upperbound)
@@ -206,8 +213,8 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
             else:
                 if lowerbound > node.get_root().get_upperbound():
                     print('ich bin bad solution')
-                else :
-                    print("not feasible solution")  
+                # else :
+                    # print("not feasible solution")  
 
         if len(node.get_childs()) == 0: #Case where none of the childs are possible. 
             node.set_is_done(True)
@@ -390,6 +397,7 @@ def get_obj(solution, size, cap, weight, rounded=False):
     for col in range(size):
         for rows in range(size):
             bag[col] += solution[rows][col] * weight[rows] / cap
+
     if rounded:
         value = 0
         for i in range(size):
@@ -404,7 +412,6 @@ branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], VARIABLE["FULL"])
 beg = 20
 end = 150
 
-
 # for i in range(beg, end+5, 5):
 #     for j in range(3):
 #         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
@@ -412,3 +419,9 @@ end = 150
 #         heuristic = get_best_heuristic(size, cap, weight)
 #         with open('heuristics_solution.txt', 'a') as f:
 #             f.write(file_name+": heuristic="+str(heuristic[1])+" diff_with_lb="+str(heuristic[1]-ceil(sum(weight)/cap))+"\n")
+
+
+# heuristic = get_best_heuristic(size, cap, weight)
+# with open('heuristics_solution.txt', 'a') as f:
+#     for i in range(len(heuristic[0])):
+#         f.write(str(list(heuristic[0][i]))+"\n")

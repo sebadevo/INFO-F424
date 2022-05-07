@@ -64,7 +64,7 @@ class Calculator:
 
     def affichage_result(self):
         """
-        
+
         """
         """ 9. RÉCUPÉRATION DES RÉSULTATS """
 
@@ -164,6 +164,13 @@ class Calculator:
         if len(coord):
             coord[1] = round(coord[1])  # If the value is = 1/2 the chance of it being a 1 or a 0 is equiprobable.
         return coord
+
+    def get_solution(self, size):
+        solution = np.zeros((size,size))
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]):
+                solution[j] = 1
+        return solution
 
     def getAllNonInt(self):
         """
@@ -282,6 +289,13 @@ class Calculator:
         :return:
         """
         return pyo.value(self.instance.obj_expression)
+    
+    def get_int_objective(self, size):
+        solution = np.zeros((size,size))
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]):
+                solution[j] = 1
+        return np.count_nonzero(sum(solution)==0) 
 
     def getReduced(self):
         """
