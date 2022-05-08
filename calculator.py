@@ -172,6 +172,13 @@ class Calculator:
                 solution[j] = 1
         return solution
 
+    def get_relaxed_solution(self, size):
+        solution = np.zeros((size,size))
+        for j in self.instance.x:
+            if pyo.value(self.instance.x[j]):
+                solution[j] = pyo.value(self.instance.x[j])
+        return solution
+
     def getAllNonInt(self):
         """
         Will be removed because useless in the end.
@@ -295,7 +302,7 @@ class Calculator:
         for j in self.instance.x:
             if pyo.value(self.instance.x[j]):
                 solution[j] = 1
-        return np.count_nonzero(sum(solution)==0) 
+        return np.count_nonzero(sum(solution)) 
 
     def getReduced(self):
         """

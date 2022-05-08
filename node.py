@@ -24,7 +24,7 @@ class Node:
         self.depth = depth
     
     def get_depth(self):
-        return self.depth
+        return deepcopy(self.depth)
 
     def set_depth(self, depth):
         self.depth = depth
