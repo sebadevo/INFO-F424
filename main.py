@@ -1,4 +1,4 @@
-from math import ceil
+from math import ceil, floor
 
 from time import time
 from calculator import TIME_LIMIT, Calculator
@@ -7,12 +7,12 @@ import numpy as np
 from node import Node
 
 
-file_name = "Instances/bin_pack_60_0.dat"
+file_name = "Instances/bin_pack_150_1.dat"
 
 BRANCH = {
     "DEPTH_FIRST" : 0,
     "BREADTH_FIRST" : 1,
-    "BEST" : 2
+    "BEST_FIRST" : 2
 }
 
 VARIABLE = {
@@ -61,13 +61,13 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
     iteration = 0
 
     while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done():
-        if not iteration % 10:
-            print("current lowerbound: ", root_node.get_lowerbound(), "current upperbound: ", root_node.get_upperbound(), "number of iteration: ", iteration)
+        if not iteration % 1:
+            print(sum(weight)/cap, "current lowerbound:", root_node.get_lowerbound(), "  current upperbound:", root_node.get_upperbound(), "  number of iteration:", iteration)
         selected = select_node_to_expand(root_node, branching_scheme)
         expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
-        if time() - start > time_limit:
-            print("the algo took to long best solution is :", heuristic[1])
+        if time() - start > time_limit/10:
+            print("the algo took to long best solution found by b&b is :", root_node.get_upperbound(), "the best solution found by heuristics is:", heuristic[1])
             exit(0)
     print("the algo is done, the objective value is :", root_node.get_upperbound(), " and initial lowerbound is :", ceil(sum(weight)/cap))
         
@@ -83,13 +83,13 @@ def get_best_heuristic(size, cap, weight):
     """
     heur_list = []
 
-    sol_best_fit = build_best_fit_solution(size, cap, weight)
-    print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
-    heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
+    # sol_best_fit = build_best_fit_solution(size, cap, weight)
+    # print("best packing : ", get_obj(sol_best_fit, size, cap, weight, True))
+    # heur_list.append([sol_best_fit, get_obj(sol_best_fit, size, cap, weight, True) ])
 
-    sol_greedy = build_greedy_solution(size, cap, weight)
-    print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
-    heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
+    # sol_greedy = build_greedy_solution(size, cap, weight)
+    # print("greedy packing : ", get_obj(sol_greedy, size, cap, weight, True))
+    # heur_list.append([sol_greedy , get_obj(sol_greedy, size, cap, weight, True)])
 
     sol_evenly_fill = build_evenly_fill_solution(size, cap, weight)
     print("evenly packing : ", get_obj(sol_evenly_fill, size, cap, weight, True))
@@ -120,9 +120,10 @@ def build_root_node(upperbound, file_name, variable_selection_scheme, size, cap,
     calculator = Calculator(file_name)
     calculator.run()
     non_int = calculator.get_non_int(variable_selection_scheme)
-    root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, non_int, 0, False)
+    root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, non_int, [], 0, False)
+    constraint = cutting_planes(calculator.get_relaxed_solution(size), size, cap, weight)
     root_node.set_root(root_node)
-    cutting_planes(root_node, size, cap, weight)
+    root_node.set_cutting_planes(constraint)
     return root_node
 
 
@@ -139,8 +140,8 @@ def select_node_to_expand(node, branching_scheme):
         selected = select_node_to_expand_depth_first(node)
     # elif branching_scheme == 1:
         # selected = select_node_to_expand_breadth_first(node)
-    # elif branching_scheme == 2:
-    #     selected = select_node_to_expand_best_first(node)
+    elif branching_scheme == 2:
+        selected = select_node_to_expand_best_first(node)
     else :
         print("Sorry this branching scheme has not been implemented yet.")
         exit(0)
@@ -162,37 +163,28 @@ def select_node_to_expand_depth_first(node):
                 return select_node_to_expand_depth_first(childs[i])
     return node
 
-# def select_node_to_expand_best_first(node):
-#     """
+def select_node_to_expand_best_first(node):
+    """
 
-#     :param node:
-#     :return:
-#     """
-#     """
-#     Select the best node such that the node with the lowest upperbound 
-#     will be expanded if it has not been visited yet.
-#     """
-#     childs = node.get_childs()
-#     while len(childs):
-#         u = 9999
-#         index = -1
-#         # print("bonjour, im not done and haven't been selected", node.get_depth(), "number of childs : ", len(childs))
-#         for i in range(len(childs)):
-#             if (not childs[i].get_is_done()) and (childs[i].get_upperbound() < u ):
-#                 u = childs[i].get_upperbound()
-#                 index = i
-#             # elif (not childs[i].get_is_done()):
-#             #     pass
-#             #     # print("bonjour, im not done and haven't been selected", node.get_depth(), "number of childs : ", len(childs))
-#             # else:
-#             #      print("Done", node.get_depth(), "number of childs : ", len(childs))
-#         if index != -1:
-#             node = childs[i]
-#             childs = node.get_childs()
-#         # else :
-#             # print("i'm stuck and my depth is", node.get_depth())
-    
-#     return node
+    :param node:
+    :return:
+    """
+    """
+    Select the best node such that the node with the lowest upperbound 
+    will be expanded if it has not been visited yet.
+    """
+    childs = node.get_childs()
+    while len(childs):
+        u = 9999
+        index = -1
+        for i in range(len(childs)):
+            if (not childs[i].get_is_done()) and (childs[i].get_upperbound() < u ):
+                u = deepcopy(childs[i].get_upperbound())
+                index = i
+        if index != -1:
+            node = childs[i]
+            childs = node.get_childs()
+    return node
 
 # def select_node_to_expand_breadth_first(node, depth):
 #     """
@@ -209,15 +201,26 @@ def select_node_to_expand_depth_first(node):
 #                 return select_node_to_expand_breadth_first(childs[i])
 #     return node
 
-def cutting_planes(node, size, cap, weight):
-    solution = node.get_relaxed_solution(size)
-    param_b = cap
-    for b in range(size):
-        for p in range(size):
-            param_k = ceil(param_b/sum(weight[p]))
-            gamma = param_b - (param_k -1)*sum(weight[y])
+def cutting_planes(solution, size, cap, weight):
+    """"
     
-    return 0
+    """
+    solution = solution
+    bag_constraint = np.full(size, cap, dtype=int)
+    prod_constraint = np.rot90(np.tile(weight,(size,1)), -1)
+    maximals = np.ones(size, dtype=int)
+    for box in range(size):
+        index_max = 0
+        value = 0
+        for prod in range(size):
+            if solution[prod][box] != 1 and solution[prod][box] > value:
+                value = solution[prod][box]
+                index_max = prod
+        maximals[box] = prod_constraint[index_max][box]
+    prod_constraint = np.floor_divide(prod_constraint, maximals)
+    bag_constraint = np.floor_divide(bag_constraint, maximals)
+    constraint = np.vstack((prod_constraint, bag_constraint))
+    return constraint
                 
 def expand_tree(node, variable_selection_scheme, size, cap, weight):
     """
@@ -237,6 +240,7 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
             constraints.append(constr)
             calculator = Calculator(file_name)
             calculator.add_constraint_model(constraints)
+            calculator.add_cutting_planes(node.get_cutting_planes())
             calculator.run()
             lowerbound = ceil(calculator.get_objective())
             if lowerbound and lowerbound <= node.get_root().get_upperbound():
@@ -250,20 +254,25 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
                     print("current solution found with upperbound value :", upperbound, "the lowerbound is :", lowerbound, "my depth =", node.get_depth()+1)  
                 else :
                     upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
-                    print("rebuilded solution with upperbound value : ", upperbound, "my depth =", node.get_depth()+1)
-                node.add_child(Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), deepcopy(node.get_depth()+1) ,deepcopy(is_done)))
+                    #print("rebuilded solution with upperbound value : ", upperbound, "my depth =", node.get_depth()+1)
+                node.add_child(Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), node.get_cutting_planes(),deepcopy(node.get_depth()+1) ,deepcopy(is_done)))
             else:
                 if lowerbound > node.get_root().get_upperbound():
-                    print('ich bin bad solution')
+                    print("The solution has a lowerbound that is higher to the upperbound.")
                 else :
                     print("not feasible solution")  
 
         if len(node.get_childs()) == 0: #Case where none of the childs are possible. 
             node.set_is_done(True)
-            update_parent(node.get_parent())
+            if node.get_parent() is not None:
+                update_parent(node.get_parent())
             print("I am indeed done")    
         else:
             update_parent(node)
+    else :
+        node.set_is_done(True)
+        if node.get_parent() is not None:
+            update_parent(node.get_parent())
         
 
 def update_bounds(node):
@@ -307,9 +316,7 @@ def update_state(node):
     if flag:
         node.set_is_done(True)
         parent = node.get_parent()
-        print("im going to update my parent and here is my depth", node.get_depth(), "here is the depth of the root_node", node.get_root().get_depth())
         if parent is not None:
-            print("I am indeed updating my parent", "", node.get_depth())
             update_state(parent)
 
 def update_parent(node):
@@ -448,7 +455,7 @@ def get_obj(solution, size, cap, weight, rounded=False):
         value = sum(bag)
     return value
 
-branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], VARIABLE["FULL"])
+branch_and_bound(file_name, BRANCH["BEST_FIRST"], VARIABLE["FULL"])
 
 beg = 20
 end = 150

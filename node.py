@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 class Node:
-    def __init__(self, constraints, upperbound, lowerbound, parent, root, non_int, depth, is_done):
+    def __init__(self, constraints, upperbound, lowerbound, parent, root, non_int, cutting_planes, depth, is_done):
         """
 
         :param constraints:
@@ -13,6 +13,7 @@ class Node:
         :param depth:
         :param is_done:
         """
+        self.cutting_planes = cutting_planes
         self.upperbound = upperbound
         self.lowerbound = lowerbound
         self.constraints = constraints
@@ -22,6 +23,12 @@ class Node:
         self.non_int = non_int
         self.is_done = is_done
         self.depth = depth
+        
+    def get_cutting_planes(self):
+        return self.cutting_planes
+
+    def set_cutting_planes(self, cutting_planes):
+        self.cutting_planes = cutting_planes
     
     def get_depth(self):
         return deepcopy(self.depth)

@@ -46,6 +46,13 @@ class Calculator:
         def x_constraint_rule(m, p):
             return sum(m.x[p, b] for b in m.b) == 1
 
+        @self.model.Constraint(self.model.b)
+        def y_constraint_rule(m, b):
+            if b+1 in m.b:
+                return m.y[b] >= m.y[b+1]
+            else:
+                return m.y[1] >= 0
+
         """ 6. PARAMÊTRE DU SOLVEUR """
 
         self.solveur = pyo.SolverFactory('glpk')
@@ -106,6 +113,10 @@ class Calculator:
             else:
                 self.instance.constraint_list.add(self.instance.x[elem[0]] <= elem[1])
 
+    def add_cutting_planes(self, constraint):
+        for j in range(len(constraint[0])):
+            self.instance.constraint_list.add(sum(self.instance.x[(i,j)]*constraint[i][j] for i in range(len(constraint)-1)) <= self.instance.y[j]*constraint[-1][j])
+            # pass
 
     def get_non_int(self, variable_selection_scheme):
         """
