@@ -68,7 +68,7 @@ iteration per second : 0.8693082639924513
 cut1 sel1
 Instances/bin_pack_50_1.dat
 current upperbound:22  number of iteration:4 Time 0.56
-iteration per second : 10
+iteration per second : 7.9
 Instances/bin_pack_100_1.dat
 current upperbound:42  number of iteration:115 Time 53.38
 iteration per second : 2.164775214857484
@@ -160,7 +160,8 @@ iteration per second : 4.374703654604944
 Instances/bin_pack_100_1.dat
 current upperbound:41  number of iteration:31 Time 17.82
 iteration per second : 1.7400607003159743
-Instances/bin_pack_150_1.datcurrent upperbound:62  number of iteration:7 Time 10.07
+Instances/bin_pack_150_1.dat
+current upperbound:62  number of iteration:7 Time 10.07
 iteration per second : 0.7285973623486117
 
 symetry cut2 sel1

@@ -283,7 +283,7 @@ def expand_tree(node, variable_selection_scheme, size, cap, weight):
                     print("current solution found with upperbound value :", upperbound, "the lowerbound is :", lowerbound, "my depth =", node.get_depth()+1)  
                 else :
                     upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
-                    #print("rebuilded solution with upperbound value : ", upperbound, "my depth =", node.get_depth()+1)
+                    print("rebuilded solution with upperbound value : ", upperbound, "my depth =", node.get_depth()+1)
                 node.add_child(Node(deepcopy(constraints), deepcopy(upperbound), deepcopy(lowerbound), node, node.get_root(), deepcopy(non_int), node.get_cutting_planes(),deepcopy(node.get_depth()+1) ,deepcopy(is_done)))
             else:
                 if lowerbound > node.get_root().get_upperbound():
@@ -487,16 +487,17 @@ def get_obj(solution, size, cap, weight, rounded=False):
 
 
 
-# file_name = "Instances/bin_pack_50_1.dat"
-beg = 50
-end = 150
-for a in range(3):
-    with open('benchmark.txt', 'a') as f:
-        f.write("sel"+str(a+1)+"\n")
-    for i in range(beg, end+5, 50):
-        for j in range(1,2):
-            file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-            with open('benchmark.txt', 'a') as f:
-                f.write(file_name+"\n")
-            branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], a, valid_inequalities=1)
+file_name = "Instances/bin_pack_20_0.dat"
+branch_and_bound(file_name, BRANCH["BEST_FIRST"], VARIABLE["FULL"], valid_inequalities=2)
+# beg = 50
+# end = 150
+# for a in range(3):
+#     with open('benchmark.txt', 'a') as f:
+#         f.write("sel"+str(a+1)+"\n")
+#     for i in range(beg, end+5, 50):
+#         for j in range(1,2):
+#             file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
+#             with open('benchmark.txt', 'a') as f:
+#                 f.write(file_name+"\n")
+#             branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], a, valid_inequalities=1)
 

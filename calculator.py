@@ -270,6 +270,18 @@ class Calculator:
                 bag[index] -= weight[o]
             else:
                 print("solution impossible to build")
+
+        file_name = "Instances/bin_pack_20_0.dat"
+        with open('laurent.txt', 'a') as f:
+            f.write(file_name+"\n")
+            f.write("[")
+            for i in range(size):
+                f.write("[")
+                for j in range(size-1):
+                    f.write(str(int(solution[i][j]))+" ,")
+                f.write(str(solution[i][-1]))
+                f.write("],\n")
+            f.write("]\n")
         used = sum(solution)
         up = 0
         for i in used:
