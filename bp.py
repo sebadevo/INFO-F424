@@ -29,13 +29,13 @@ INEQUALITIES = {
 def solve_bp_lp(instance_name):
     """
     Solves the LP relaxation based on the instance_name.
-    It reports in the standart input/output the time it took and the gab between the repaired heuristic and the
+    It reports in the standart input/output the time it took and the gap between the repaired heuristic and the
     optimal objective value of the LP relaxation.
     :param instance_name: (String) The name of the .dat file to run.
     :return: (Tuple) a tuple containing :
         - obj: the optimal objective value of the LP relaxation.
         - x: The optimal solution x (i.e. which object is assigned to which bag and in which proportion)
-        - y: the optimal solution y (i.e. which bag are used and in which proportion
+        - y: the optimal solution y (i.e. which bag are used and in which proportion)
     """
     size, cap, weight = extract_data(instance_name)
     calculator = Calculator(instance_name)
@@ -53,19 +53,19 @@ def solve_bp_lp(instance_name):
 def branch_and_bound(instance_name, branching_scheme=1, variable_selection_scheme=2, valid_inequalities=1,
                      time_limit=time_limit * 60):
     """
-    Applies the branch and bound procedure to try to solve the LP.
-    It will output progresse as it goes to the tree in the STDIO, and will make a comparaison between the result
+    Applies the branch and bound procedure to solve the LP.
+    It will output the progress as it goes through the tree in the STDIO, and it will make a comparison between the result
     obtained by the branch and bound and the best result obtained by the heuristics.
 
     :param instance_name: (String) The name of the .dat file to run.
-    :param branching_scheme: (Int) The branching methode you want to use.
+    :param branching_scheme: (Int) The branching method to use.
         - 0 : DEPTH_FIRST
         - 1 : BEST_FIRST
-    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection methode you want to use.
-        - 0 : ROUNDED (takes the variable whose fractional value is closest to an integer (in our case : 0 or 1))
+    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection method to use.
+        - 0 : ROUNDED (takes the variable whose fractional value is closest to an integer (in this case : 0 or 1))
         - 1 : HALF (takes the variable whose fractional value is closest to 1/2.)
         - 2 : FULL (takes the variable whose fractional value is closest to 1.)
-    :param valid_inequalities: (Int) The cutting plane generation methode you want to use.
+    :param valid_inequalities: (Int) The cutting plane generation method you want to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
     :param time_limit: (Int) time in seconds available for the b&b to solve the problem.
@@ -80,7 +80,7 @@ def branch_and_bound(instance_name, branching_scheme=1, variable_selection_schem
     privious = 9999
 
     while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done() and iteration < 10000:
-        if not iteration % 1:  # you can choose every how many iteration it will print the evolution of the b&b.
+        if not iteration % 1:  # you can choose every how many iteration it will print during the evolution of the b&b.
             print(sum(weight) / cap, "current lowerbound:", root_node.get_lowerbound(), "  current upperbound:",
                   root_node.get_upperbound(), "  number of iteration:", iteration, " Time ", round(time() - start, 2))
 
@@ -92,7 +92,7 @@ def branch_and_bound(instance_name, branching_scheme=1, variable_selection_schem
             privious = root_node.get_upperbound()
 
         if time() - start > time_limit:
-            print("the algo took to long best solution found by b&b is :", privious, "the best solution found by "
+            print("the algo took too long, the best solution found by the b&b is :", privious, "the best solution found by "
                                                                                      "heuristics is:", heuristic[1])
             break
     print("the algo is done, the objective value is :", root_node.get_upperbound(), " and initial lowerbound is :",
@@ -101,7 +101,7 @@ def branch_and_bound(instance_name, branching_scheme=1, variable_selection_schem
 
 def extract_data(instance_name):
     """
-    Opens the instance_name file and extracts the weight, size and cap of the problem.
+    Open the instance_name file and extracts the weight, size and cap of the problem.
     :param instance_name: (String) The name of the .dat file to run.
     :return: (Int) size: the size of the problem, (Int) cap: the capacity of each bag, (List) weight: list of the
     weights of the objects.
@@ -182,7 +182,7 @@ def build_greedy_solution(size, cap, weight):
 
 def build_best_fit_solution(size, cap, weight):
     """
-    Algorithm that will try to fill a bag such that it will be the closest of being full.
+    Algorithm that will try to fill a bag such that the remaining capacity of the bag is minimal.
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
@@ -207,7 +207,7 @@ def build_best_fit_solution(size, cap, weight):
 
 def build_evenly_fill_solution(size, cap, weight):
     """
-    Algorithm that will try to fill a bag such that it will be the closest of being full.
+    Algorithm that will try to fill evenly all the bags. This result in having one object per bag.
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
@@ -280,7 +280,7 @@ def get_obj(solution, size, cap, weight, rounded=False):
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
-    :param rounded: (Boolean) true if the objective value should be for the integer problem, false for objective value
+    :param rounded: (Boolean) true if the objective value should be for the integer problem, false for the objective value
     of the LP relaxation.
     :return: (Int) the Objective value
     """
@@ -300,11 +300,11 @@ def build_root_node(upperbound, instance_name, variable_selection_scheme, valid_
     Creates the first node of the tree and generates the cutting planes inequalities.
     :param upperbound: (Int) the initial upperbound of the root_node is the objective value of the best heuristic.
     :param instance_name: (String) The name of the .dat file to run.
-    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection methode you want to use.
+    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection method to use.
         - 0 : ROUNDED (takes the variable whose fractional value is closest to an integer (in our case : 0 or 1))
         - 1 : HALF (takes the variable whose fractional value is closest to 1/2.)
         - 2 : FULL (takes the variable whose fractional value is closest to 1.)
-    :param valid_inequalities: (Int) The cutting plane generation methode you want to use.
+    :param valid_inequalities: (Int) The cutting plane generation method to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
     :param size: (Int) the size of the problem.
@@ -328,25 +328,25 @@ def build_root_node(upperbound, instance_name, variable_selection_scheme, valid_
 
 def cutting_planes_solution(solution, size, cap, weight):
     """
-    Generates cutting plane based on the LP relaxation solution. For each bag of the solution we take the weight of the
-    object whose fractional value is closest to 1. Then we devide the weight of all the object by chosen weight and
+    Generates cutting planes based on the LP relaxation solution. For each bag of the solution we take the weight of the
+    object whose fractional value is closest to 1. Then we devide the weight of all the object by the chosen weight and
     round down the value since the inequalities are lower or equal. We also divide the capacity (being the coefficient
-    of the bags) by the same weight and also round down. We finaly obtaine a new valid inequality by multipling
+    of the bags) by the same weight and also round down. We finaly obtain a new valid inequality by multipling
     elementwise the computed coefficient for the weights to their corresponding x_pb, the sum of the resulting operation
-    must be smaller or equal to the y_b multiplied it's coefficient.
-    This way we generated for each column of the solution new cutting plane.
+    must be smaller or equal to the y_b multiplied its coefficient.
+    This way we generated for each column of the solution new cutting planes.
     :param solution: (List) the solution x_pb representing if an object p is in box b.
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
     :return: (List) list of constraint
-    ex :
+    EXAMPLE:
     constraint = [[[1, 2, 1],
                   [1, 2, 0],
                   [0, 1, 0],
                   [4, 12, 1],
                   [0, 0, 0]]]
-    Meanining that we have the following constraints :
+    Meaning that we have the following constraints :
         - 1*X_11 + 1*X_21 <= 4*Y_1 + 0
         - 2*X_12 + 2*X_22 + 1*X_32 <= 12*Y_2 + 0
         - 1*X_13 <= 1*Y_3 + 0
@@ -373,8 +373,8 @@ def cutting_planes_solution(solution, size, cap, weight):
 
 def cutting_planes_problem(size, cap, weight):
     """
-    Generates cutting plane based on the problem. We will make combination of object whose weights combined surpasses
-    the capacity of a bag and create a new equality based on the formula :
+    Generates cutting planes based on the problem. We will make a combination of the objects whose weights combined surpasses
+    the capacity of a bag and we will create a new equality based on the formula:
         - b = sum of the weight of the chosen objects
         - c = capacity of a bag
         - k = ceil(b/c)
@@ -384,8 +384,8 @@ def cutting_planes_problem(size, cap, weight):
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
-    :return: (List) list of constraint
-    ex :
+    :return: (List) list of constraints
+    EXAMPLE:
     constraint = [[[70, 70, 70],
                   [0, 0, 0],
                   [30, 30, 30],
@@ -429,7 +429,7 @@ def select_node_to_expand(node, branching_scheme):
     """
     Select the next node that will be expanded next.
     :param node: (Object Node) the root node of the tree.
-    :param branching_scheme: (Int) The branching methode you want to use.
+    :param branching_scheme: (Int) The branching method to use.
         - 0 : DEPTH_FIRST
         - 1 : BEST_FIRST
     :return: (Object Node) the selected node to expand.
@@ -441,7 +441,7 @@ def select_node_to_expand(node, branching_scheme):
     elif branching_scheme == BRANCH["BEST_FIRST"]:
         selected = select_node_to_expand_best_first(node)
     else:
-        print("Sorry, the branching scheme selected has not been implemented yet.")
+        print("The branching scheme selected has not been implemented yet.")
         exit(0)
     return selected
 
@@ -463,7 +463,7 @@ def select_node_to_expand_depth_first(node):
 def select_node_to_expand_best_first(node):
     """
     Select the best node such that the child with the lowest upperbound will be selected, and then it will select the
-    child with the lowest upperbound and so on until it reaches a node that is not done yet and has no childs.
+    child with the lowest upperbound and so on until it reaches a node that is not done yet and has no childs (in other words a leaf).
     :param node: (Object Node) the root node of the tree.
     :return: (Object Node) the selected node to expand.
     """
@@ -493,11 +493,11 @@ def expand_tree(node, instance_name, variable_selection_scheme, size, cap, weigh
     Expands a node by giving it 2 childs based on its LP relaxation solution. First the variable to branch on is
     selected then the problem is solved and if the solution is feasible a new child is added. At the same time, a
     reparation heuristic will repaire the LP relaxation solution just obtained to generate the upperbound of the new
-    child. once the new child is added, an update is called on the tree to update the upperbounds and lowerbounds of the
+    child. Once the new child is added, an update is called on the tree to update the upperbounds and lowerbounds of the
     parents.
     :param node: (Object Node) the node that will be expanded.
     :param instance_name: (String) The name of the .dat file to run.
-    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection methode you want to use.
+    :param variable_selection_scheme: (Int) The variable (to branch at each node) selection method you want to use.
         - 0 : ROUNDED (takes the variable whose fractional value is closest to an integer (in our case : 0 or 1))
         - 1 : HALF (takes the variable whose fractional value is closest to 1/2.)
         - 2 : FULL (takes the variable whose fractional value is closest to 1.)
