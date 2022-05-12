@@ -1049,5 +1049,5 @@ class Node:
 
 
 solve_bp_lp(instance_name)
-branch_and_bound(instance_name, branching_scheme=BRANCH["DEPTH_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
+branch_and_bound(instance_name, branching_scheme=BRANCH["BEST_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
                  valid_inequalities=INEQUALITIES["PROBLEM"])
