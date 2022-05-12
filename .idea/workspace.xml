@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5a4a5cb3-c085-44c7-a8a4-dab63d60c124" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Project-INFO-F424.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Project-INFO-F424.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/benchmark.txt" beforeDir="false" afterPath="$PROJECT_DIR$/benchmark.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/bp.py" beforeDir="false" afterPath="$PROJECT_DIR$/bp.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/calculator.py" beforeDir="false" afterPath="$PROJECT_DIR$/calculator.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,6 +38,28 @@
   }
 }</component>
   <component name="RunManager">
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <module name="Project-INFO-F424" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="true" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="Project-INFO-F424" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -87,7 +107,7 @@
       <workItem from="1648113665104" duration="655000" />
       <workItem from="1650469673502" duration="588000" />
       <workItem from="1651933881046" duration="2616000" />
-      <workItem from="1652374347315" duration="2224000" />
+      <workItem from="1652374347315" duration="13729000" />
     </task>
     <servers />
   </component>
