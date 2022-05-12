@@ -114,9 +114,9 @@ class Calculator:
                 self.instance.constraint_list.add(self.instance.x[elem[0]] <= elem[1])
 
     def add_cutting_planes(self, constraint):
-        for j in range(len(constraint[0])):
-            self.instance.constraint_list.add(sum(self.instance.x[(i,j)]*constraint[i][j] for i in range(len(constraint)-1)) <= self.instance.y[j]*constraint[-1][j])
-            # pass
+        for m in range(len(constraint)):
+            for j in range(len(constraint[m][0])):
+                self.instance.constraint_list.add(sum(self.instance.x[(i,j)]*constraint[m][i][j] for i in range(len(constraint[m])-2)) <= self.instance.y[j]*constraint[m][-2][j]+constraint[m][-1][j])
 
     def get_non_int(self, variable_selection_scheme):
         """

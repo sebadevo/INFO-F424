@@ -1,0 +1,197 @@
+BEST FIRST:
+nothing sel1
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:43 Time 4.9
+iteration per second : 7.8
+Instances/bin_pack_100_1.dat
+current upperbound:44  number of iteration:112 Time 47.72
+iteration per second : 2.365976734150904
+Instances/bin_pack_150_1.dat
+current upperbound:68  number of iteration:1 Time 1.57
+iteration per second : 0.9608196301889028
+
+nothing sel2
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:20 Time 2.39
+iteration per second : 7.7
+Instances/bin_pack_100_1.dat
+current upperbound:46  number of iteration:20 Time 8.4
+iteration per second : 2.44729148695887
+Instances/bin_pack_150_1.dat
+current upperbound:67  number of iteration:19 Time 18.5
+iteration per second : 1.0173278202064628
+
+nothing sel3
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:63 Time 7.55
+iteration per second : 7.546562610418988
+Instances/bin_pack_100_1.dat
+current upperbound:46  number of iteration:21 Time 9.59
+iteration per second : 2.2230062988642545
+Instances/bin_pack_150_1.dat
+current upperbound:68  number of iteration:1 Time 1.55
+iteration per second : 0.9527832164830375
+
+symetry sel1
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.21
+iteration per second : 4.818502443541216
+Instances/bin_pack_100_1.dat
+current upperbound:41  number of iteration:2 Time 1.16
+iteration per second : 1.7169476733238254
+Instances/bin_pack_150_1.dat
+current upperbound:62  number of iteration:1 Time 1.59
+iteration per second : 0.8150281752370037
+
+symetry sel2
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.21
+iteration per second : 4.8314739535156965
+Instances/bin_pack_100_1.dat
+current upperbound:41  number of iteration:5 Time 2.59
+iteration per second : 1.9318200764842133
+Instances/bin_pack_150_1.dat
+current upperbound:62  number of iteration:1 Time 1.6
+iteration per second : 0.7992784116375891
+
+symetry sel3
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.2
+iteration per second : 5.0541029376500965
+Instances/bin_pack_100_1.dat
+current upperbound:41  number of iteration:18 Time 8.6
+iteration per second : 2.092631567043259
+Instances/bin_pack_150_1.dat
+current upperbound:61  number of iteration:21 Time 24.16
+iteration per second : 0.8693082639924513
+
+cut1 sel1
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:4 Time 0.56
+iteration per second : 10
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:115 Time 53.38
+iteration per second : 2.164775214857484
+Instances/bin_pack_150_1.dat
+current upperbound:66  number of iteration:3 Time 4.06
+iteration per second : 0.8252517613608006
+
+cut1 sel2
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:11 Time 1.47
+iteration per second : 7.9289858979487535
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:2 Time 1.24
+iteration per second : 2.046408270593168
+Instances/bin_pack_150_1.dat
+current upperbound:65  number of iteration:36 Time 43.31
+iteration per second : 0.8356575019530136
+
+cut1 sel3
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:9 Time 1.22
+iteration per second : 7.35123016975776
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:64 Time 32.37
+iteration per second : 1.9349187765265496
+Instances/bin_pack_150_1.dat
+current upperbound:64  number of iteration:28 Time 33.66
+iteration per second : 0.8386944128954746
+
+cut2 sel1
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:2 Time 1.17
+iteration per second : 1.8193322570026755
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:1 Time 3.7
+iteration per second : 0.29666012191567515
+Instances/bin_pack_150_1.dat
+current upperbound:63  number of iteration:2 Time 20.6
+iteration per second : 0.09719435933538151
+
+cut2 sel2
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:1 Time 0.61
+iteration per second : 1.8313347150716957
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:1 Time 3.68
+iteration per second : 0.29134888170438367
+Instances/bin_pack_150_1.dat
+current upperbound:63  number of iteration:2 Time 21.36
+iteration per second : 0.09328421531298052
+
+cut2 sel3
+Instances/bin_pack_50_1.dat
+current upperbound:22  number of iteration:7 Time 3.96
+iteration per second : 1.7931108677474268
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:1 Time 3.59
+iteration per second : 0.29542954524838705
+Instances/bin_pack_150_1.dat
+current upperbound:63  number of iteration:2 Time 21.22
+iteration per second : 0.09521324528035376
+
+symetry cut1 sel1
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.23
+iteration per second : 4.350901652268446
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:1 Time 0.78
+iteration per second : 1.932262488792243
+Instances/bin_pack_150_1.dat
+current upperbound:62  number of iteration:2 Time 3.32
+iteration per second : 0.8335627568393679
+
+symetry cut1 sel2
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.23
+iteration per second : 4.35736532519962
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:1 Time 0.74
+iteration per second : 1.9744406543628257
+Instances/bin_pack_150_1.dat
+current upperbound:62  number of iteration:4 Time 5.6
+iteration per second : 0.7756418899220531
+
+symetry cut1 sel3
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.23
+iteration per second : 4.374703654604944
+Instances/bin_pack_100_1.dat
+current upperbound:41  number of iteration:31 Time 17.82
+iteration per second : 1.7400607003159743
+Instances/bin_pack_150_1.datcurrent upperbound:62  number of iteration:7 Time 10.07
+iteration per second : 0.7285973623486117
+
+symetry cut2 sel1
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.63
+iteration per second : 1.5830429662731362
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:3 Time 10.44
+iteration per second : 0.29669117002540113
+Instances/bin_pack_150_1.dat
+current upperbound:64  number of iteration:2 Time 20.34
+iteration per second : 0.09852110163835756
+
+symetry cut2 sel2
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:2 Time 1.35
+iteration per second : 1.4865969640034975
+Instances/bin_pack_100_1.dat
+current upperbound:42  number of iteration:8 Time 26.67
+iteration per second : 0.29750792398497616
+Instances/bin_pack_150_1.dat
+current upperbound:65  number of iteration:2 Time 21.05
+iteration per second : 0.09745349027144154
+
+symetry cut2 sel3
+Instances/bin_pack_50_1.dat
+current upperbound:21  number of iteration:1 Time 0.62
+iteration per second : 1.6158513000611776
+Instances/bin_pack_100_1.dat
+current upperbound:43  number of iteration:16 Time 54.85
+iteration per second : 0.2925766236750127
+Instances/bin_pack_150_1.dat
+current upperbound:65  number of iteration:1 Time 10.56
+iteration per second : 0.09805679728191484

@@ -7,12 +7,11 @@ import numpy as np
 from node import Node
 
 
-file_name = "Instances/bin_pack_150_1.dat"
+file_name = "Instances/bin_pack_50_1.dat"
 
 BRANCH = {
     "DEPTH_FIRST" : 0,
-    "BREADTH_FIRST" : 1,
-    "BEST_FIRST" : 2
+    "BEST_FIRST" : 1,
 }
 
 VARIABLE = {
@@ -44,7 +43,7 @@ def extract_data(filename):
     return size, cap, weight
 
 
-def branch_and_bound(instance_name, branching_scheme=0, variable_selection_scheme=0, valid_inequalities=[], time_limit=600):
+def branch_and_bound(instance_name, branching_scheme=0, variable_selection_scheme=0, valid_inequalities=0, time_limit=600):
     """
 
     :param instance_name:
@@ -57,18 +56,25 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
     start = time()
     size, cap, weight = extract_data(instance_name)
     heuristic = get_best_heuristic(size, cap, weight)
-    root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme, size, cap, weight)
+    root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme, valid_inequalities, size, cap, weight)
     iteration = 0
-
-    while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done():
+    privious = root_node.get_upperbound()
+    text = str("current upperbound:"+ str(root_node.get_lowerbound())+ "  number of iteration:"+ str(iteration+1)+ " Time "+ str(round(time() - start, 2))+"\n")
+    while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done() and iteration <10000:
         if not iteration % 1:
-            print(sum(weight)/cap, "current lowerbound:", root_node.get_lowerbound(), "  current upperbound:", root_node.get_upperbound(), "  number of iteration:", iteration)
+            print(sum(weight)/cap, "current lowerbound:", root_node.get_lowerbound(), "  current upperbound:", root_node.get_upperbound(), "  number of iteration:", iteration, " Time ", round(time() - start, 2))
+           
         selected = select_node_to_expand(root_node, branching_scheme)
         expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
+        if privious > root_node.get_upperbound():
+            text = str("current upperbound:"+ str(root_node.get_upperbound())+ "  number of iteration:"+ str(iteration)+ " Time "+ str(round(time() - start, 2))+"\n")
+            privious = root_node.get_upperbound()
         if time() - start > time_limit/10:
-            print("the algo took to long best solution found by b&b is :", root_node.get_upperbound(), "the best solution found by heuristics is:", heuristic[1])
-            exit(0)
+            print("the algo took to long best solution found by b&b is :", privious, "the best solution found by heuristics is:", heuristic[1])
+            break
+    with open('benchmark.txt', 'a') as f:
+        f.write(text+"iteration per second : " + str(iteration/(time() - start))+"\n")
     print("the algo is done, the objective value is :", root_node.get_upperbound(), " and initial lowerbound is :", ceil(sum(weight)/cap))
         
 def get_best_heuristic(size, cap, weight):
@@ -109,7 +115,7 @@ def get_best_heuristic(size, cap, weight):
 
 
 
-def build_root_node(upperbound, file_name, variable_selection_scheme, size, cap, weight):
+def build_root_node(upperbound, file_name, variable_selection_scheme, valid_inequalities, size, cap, weight):
     """
 
     :param upperbound:
@@ -121,10 +127,15 @@ def build_root_node(upperbound, file_name, variable_selection_scheme, size, cap,
     calculator.run()
     non_int = calculator.get_non_int(variable_selection_scheme)
     root_node = Node([], upperbound, ceil(calculator.get_objective()), None, None, non_int, [], 0, False)
-    constraint = cutting_planes(calculator.get_relaxed_solution(size), size, cap, weight)
+    constraint = []
+    if valid_inequalities == 0:
+        constraint = cutting_planes_1(calculator.get_relaxed_solution(size), size, cap, weight)
+    elif valid_inequalities == 1:
+        constraint = cutting_planes_2(size, cap, weight)
     root_node.set_root(root_node)
     root_node.set_cutting_planes(constraint)
     return root_node
+
 
 
 def select_node_to_expand(node, branching_scheme):
@@ -136,14 +147,12 @@ def select_node_to_expand(node, branching_scheme):
     """
     selected = None
 
-    if branching_scheme == 0:
+    if branching_scheme == BRANCH["DEPTH_FIRST"]:
         selected = select_node_to_expand_depth_first(node)
-    # elif branching_scheme == 1:
-        # selected = select_node_to_expand_breadth_first(node)
-    elif branching_scheme == 2:
+    elif branching_scheme == BRANCH["BEST_FIRST"]:
         selected = select_node_to_expand_best_first(node)
     else :
-        print("Sorry this branching scheme has not been implemented yet.")
+        print("Sorry, the branching scheme selected has not been implemented yet.")
         exit(0)
     return selected
     
@@ -174,7 +183,8 @@ def select_node_to_expand_best_first(node):
     will be expanded if it has not been visited yet.
     """
     childs = node.get_childs()
-    while len(childs):
+    counter = 0
+    while len(childs) and not node.get_is_done():
         u = 9999
         index = -1
         for i in range(len(childs)):
@@ -184,24 +194,41 @@ def select_node_to_expand_best_first(node):
         if index != -1:
             node = childs[i]
             childs = node.get_childs()
+        counter +=1
+        if counter >10000:
+            node.set_is_done(True)
+            if node.get_parent() is not None:
+                update_parent(node.get_parent())
+            node = node.get_root()
     return node
 
-# def select_node_to_expand_breadth_first(node, depth):
-#     """
-#     TODO
-#     """
-    
-#     childs = node.get_childs()
-#     if len(childs) and depth:
-#         for i in range(len(childs)):    
-#             if not childs[i].get_is_done() and len(childs[i].get_childs())==0:
-#                 return select_node_to_expand_breadth_first(childs[i])   
-#         for i in range(len(childs)):
-#             if not childs[i].get_is_done():
-#                 return select_node_to_expand_breadth_first(childs[i])
-#     return node
+def cutting_planes_2(size, cap, weight):
+    constraint = []
+    for i in range(size):
+        val = weight[i]
+        selected = [i]
+        for j in range(i+1,size): 
+            if val < 150:
+                val += weight[j]
+                selected.append(j)
+            else:
+                break
+        if val > 150: #To consider only interesting cuts.
+            sol = np.zeros(size+2, dtype=int)
+            b = 0
+            for elem in selected:
+                sol[elem] = weight[elem]
+                b += weight[elem]
+            c = cap
+            k = ceil(b/c)
+            g = b-(k-1)*c
+            sol[-2] = g  # constraint is x <= b - g*(k-y)
+            sol[-1] = b-g*k
+            constraint.append(np.rot90(np.tile(sol,(size,1)), -1))
+    return constraint
 
-def cutting_planes(solution, size, cap, weight):
+
+def cutting_planes_1(solution, size, cap, weight):
     """"
     
     """
@@ -219,8 +246,10 @@ def cutting_planes(solution, size, cap, weight):
         maximals[box] = prod_constraint[index_max][box]
     prod_constraint = np.floor_divide(prod_constraint, maximals)
     bag_constraint = np.floor_divide(bag_constraint, maximals)
+    blank = np.zeros_like(bag_constraint, dtype=int)
     constraint = np.vstack((prod_constraint, bag_constraint))
-    return constraint
+    constraint = np.vstack((constraint, blank))
+    return [constraint]
                 
 def expand_tree(node, variable_selection_scheme, size, cap, weight):
     """
@@ -455,21 +484,19 @@ def get_obj(solution, size, cap, weight, rounded=False):
         value = sum(bag)
     return value
 
-branch_and_bound(file_name, BRANCH["BEST_FIRST"], VARIABLE["FULL"])
 
-beg = 20
+
+
+# file_name = "Instances/bin_pack_50_1.dat"
+beg = 50
 end = 150
+for a in range(3):
+    with open('benchmark.txt', 'a') as f:
+        f.write("sel"+str(a+1)+"\n")
+    for i in range(beg, end+5, 50):
+        for j in range(1,2):
+            file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
+            with open('benchmark.txt', 'a') as f:
+                f.write(file_name+"\n")
+            branch_and_bound(file_name, BRANCH["BEST_FIRST"], a, valid_inequalities=1)
 
-# for i in range(beg, end+5, 5):
-#     for j in range(3):
-#         file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
-#         size, cap, weight = extract_data(file_name)
-#         heuristic = get_best_heuristic(size, cap, weight)
-#         with open('heuristics_solution.txt', 'a') as f:
-#             f.write(file_name+": heuristic="+str(heuristic[1])+" diff_with_lb="+str(heuristic[1]-ceil(sum(weight)/cap))+"\n")
-
-
-# heuristic = get_best_heuristic(size, cap, weight)
-# with open('heuristics_solution.txt', 'a') as f:
-#     for i in range(len(heuristic[0])):
-#         f.write(str(list(heuristic[0][i]))+"\n")
