@@ -59,7 +59,7 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
     root_node = build_root_node(heuristic[1], file_name, variable_selection_scheme, valid_inequalities, size, cap, weight)
     iteration = 0
     privious = root_node.get_upperbound()
-    text = str("current upperbound:"+ str(root_node.get_lowerbound())+ "  number of iteration:"+ str(iteration+1)+ " Time "+ str(round(time() - start, 2))+"\n")
+    text = str("gap: "+ str(root_node.get_lowerbound()- root_node.get_lowerbound())+ "  number of iteration:"+ str(iteration+1)+ " Time "+ str(round(time() - start, 2))+"\n")
     while root_node.get_lowerbound() != root_node.get_upperbound() and not root_node.get_is_done() and iteration <10000:
         if not iteration % 1:
             print(sum(weight)/cap, "current lowerbound:", root_node.get_lowerbound(), "  current upperbound:", root_node.get_upperbound(), "  number of iteration:", iteration, " Time ", round(time() - start, 2))
@@ -68,7 +68,7 @@ def branch_and_bound(instance_name, branching_scheme=0, variable_selection_schem
         expand_tree(selected, variable_selection_scheme, size, cap, weight)
         iteration += 1
         if privious > root_node.get_upperbound():
-            text = str("current upperbound:"+ str(root_node.get_upperbound())+ "  number of iteration:"+ str(iteration)+ " Time "+ str(round(time() - start, 2))+"\n")
+            text = str("gap: "+ str(root_node.get_upperbound()- root_node.get_lowerbound())+ "  number of iteration:"+ str(iteration)+ " Time "+ str(round(time() - start, 2))+"\n")
             privious = root_node.get_upperbound()
         if time() - start > time_limit/10:
             print("the algo took to long best solution found by b&b is :", privious, "the best solution found by heuristics is:", heuristic[1])
@@ -498,5 +498,5 @@ for a in range(3):
             file_name = "Instances/bin_pack_" + str(i) + "_" + str(j) + ".dat"
             with open('benchmark.txt', 'a') as f:
                 f.write(file_name+"\n")
-            branch_and_bound(file_name, BRANCH["BEST_FIRST"], a, valid_inequalities=1)
+            branch_and_bound(file_name, BRANCH["DEPTH_FIRST"], a, valid_inequalities=1)
 
