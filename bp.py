@@ -5,9 +5,9 @@ from math import ceil
 from time import time
 from copy import deepcopy
 
-instance_name = "Instances/bin_pack_60_0.dat"
+instance_name = "Instances/bin_pack_20_0.dat"
 
-time_limit = 10
+time_limit = 1
 
 BRANCH = {
     "DEPTH_FIRST": 0,
@@ -23,6 +23,7 @@ VARIABLE = {
 INEQUALITIES = {
     "SOLUTION": 0,
     "PROBLEM": 1,
+    "NO": 2
 }
 
 
@@ -68,6 +69,7 @@ def branch_and_bound(instance_name, branching_scheme=1, variable_selection_schem
     :param valid_inequalities: (Int) The cutting plane generation method you want to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
+        - 2 : NO (doesn't generate cutting planes.)
     :param time_limit: (Int) time in seconds available for the b&b to solve the problem.
     """
     start = time()
@@ -307,6 +309,7 @@ def build_root_node(upperbound, instance_name, variable_selection_scheme, valid_
     :param valid_inequalities: (Int) The cutting plane generation method to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
+        - 2 : NO (doesn't generate cutting planes.)
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
