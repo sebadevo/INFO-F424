@@ -5,7 +5,7 @@ from math import ceil
 from time import time
 from copy import deepcopy
 
-instance_name = "Instances/bin_pack_60_0.dat"
+instance_name = "Instances/bin_pack_20_0.dat"
 
 time_limit = 10
 
@@ -1051,5 +1051,5 @@ class Node:
 
 
 solve_bp_lp(instance_name)
-branch_and_bound(instance_name, branching_scheme=BRANCH["DEPTH_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
+branch_and_bound(instance_name, branching_scheme=BRANCH["BEST_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
                  valid_inequalities=INEQUALITIES["PROBLEM"])
