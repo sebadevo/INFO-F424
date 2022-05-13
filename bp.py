@@ -5,9 +5,9 @@ from math import ceil
 from time import time
 from copy import deepcopy
 
-instance_name = "Instances/bin_pack_20_0.dat"
+instance_name = "Instances/bin_pack_60_0.dat"
 
-time_limit = 1 # in minutes
+time_limit = 10
 
 BRANCH = {
     "DEPTH_FIRST": 0,
@@ -23,7 +23,6 @@ VARIABLE = {
 INEQUALITIES = {
     "SOLUTION": 0,
     "PROBLEM": 1,
-    "NO": 2
 }
 
 
@@ -69,7 +68,6 @@ def branch_and_bound(instance_name, branching_scheme=1, variable_selection_schem
     :param valid_inequalities: (Int) The cutting plane generation method you want to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
-        - 2 : NO (doesn't generate cutting planes.)
     :param time_limit: (Int) time in seconds available for the b&b to solve the problem.
     """
     start = time()
@@ -309,7 +307,6 @@ def build_root_node(upperbound, instance_name, variable_selection_scheme, valid_
     :param valid_inequalities: (Int) The cutting plane generation method to use.
         - 0 : SOLUTION (generates cutting planes based on the solution of the LP relaxation of the root node.)
         - 1 : PROBLEM (generates cutting planes based on the problem.)
-        - 2 : NO (doesn't generate cutting planes.)
     :param size: (Int) the size of the problem.
     :param cap: (Int) the capacity of each bag.
     :param weight: (List) a list of the weights of each object.
@@ -526,7 +523,7 @@ def expand_tree(node, instance_name, variable_selection_scheme, size, cap, weigh
                 if calculator.checkFinishedProduct():
                     upperbound = deepcopy(calculator.get_int_objective(size))
                     is_done = True
-                    print("current solution found with upperbound value :", upperbound, "the lowerbound is :",
+                    print("Current solution found with upper-bound value :", upperbound, "the lowerbound is :",
                           lowerbound, "my depth =", node.get_depth() + 1)
                 else:
                     upperbound = deepcopy(calculator.compute_int_solution(size, cap, weight))
@@ -536,7 +533,7 @@ def expand_tree(node, instance_name, variable_selection_scheme, size, cap, weigh
                          deepcopy(is_done)))
             else:
                 if lowerbound > node.get_root().get_upperbound():
-                    print("The solution has a lowerbound that is higher than the upperbound. It has thus not been "
+                    print("The solution has a lower-bound that is higher than the upper-bound. It has thus not been "
                           "added in the tree")
                 else:
                     print("not feasible solution")
@@ -555,8 +552,8 @@ def expand_tree(node, instance_name, variable_selection_scheme, size, cap, weigh
 
 def update_bounds(node):
     """
-    Will update the bounds (upper and lower) of the node. if the parent is update, the function is called recursively
-    with this time the parent of the parent to update the whole tree.
+    Update the bounds (upper and lower) of the node. If the parent is updated, the function is called recursively
+    with the parent of the parent, in that way the whole tree is updated.
     The node received by argument will always be a parent node, meaning it will always have childs.
     But the number of childs is not fixed, it can be 1 or 2.
     :param node: (Object Node) the node that may be updated.
@@ -587,7 +584,9 @@ def update_bounds(node):
 
 def update_state(node):
     """
-    If the node has both its childs as 'is_done=True', then we will set it to 'is_done=True'.
+    If the node has both its childs as 'is_done=True', then we will set it to 'is_done=True',
+    this means that the node and all of its childs have been visited. The first node which will be put to "is_done = True" 
+    is either a leaf node (no childs) or a node whose childs are unfeasible. 
     If it is set to True, we apply the function to the parent node in a recursive manner.
     :param node: (Object Node) the node that may be updated.
     """
@@ -676,14 +675,14 @@ class Calculator:
 
     def run(self):
         """ 8. RUNNING THE SOLVER """
-        result = self.solver.solve(self.instance)  # , tee=True).write()
+        result = self.solver.solve(self.instance)  # to show the GLPK preogerss while it is solving : tee=True).write()
 
     def affichage_result(self):
         """
         Displays the result of the LP relaxation in the STDIO.
-        Only displays the value for x and y that are different than 0, in oher words, only the relevant information.
+        Only displays the value for x and y that are different than 0, in other words, only the relevant information.
         """
-        # instance.display() # usefull command to show to full result but quite heavy in the output stream
+        # instance.display() # usefull command to show the full result but quite heavy in the output stream
 
         for j in self.instance.x:
             if pyo.value(self.instance.x[j]) != 0:
@@ -697,9 +696,9 @@ class Calculator:
 
     def add_constraint_model(self, corrected):
         """
-        Adds a constaint on a specific varible to be etiher grater than 1 or smaller than 0. This constraint is used
+        Adds a constaint on a specific variable to be either greater than 1 or smaller than 0. This constraint is used
         on the branching part.
-        :param corrected: (List) a list ocntaining the variable to put a constraint on, and the value to put it to.
+        :param corrected: (List) a list containing the variable to put a constraint on, and the value to put it to.
         """
         for elem in corrected:
             if elem[1]:
@@ -736,8 +735,8 @@ class Calculator:
     def get_non_int(self, variable_selection_scheme):
         """
         It will return the variable that will be branched on. To do so it first gathers all fractional value in the
-        solution computed by the solver (i.e. GLPK). The position of the fractional values and their actual value are
-        stored in the list : list_non_int. Once we gathered them all, we send this list to the compute dist methode
+        solution computed by the solver (i.e. GLPK). The position of the fractional values and their actual values are
+        stored in the list : list_non_int. Once we gathered them all, we send this list to the compute_dist method
         which will return the variable selected to branch.
 
         :param variable_selection_scheme: (Int) The scheme used to select the variable (cf. compute_dist())
@@ -753,8 +752,8 @@ class Calculator:
 
     def compute_dist(self, all_frac, variable_selection_scheme):
         """
-        It will select the variable x[i,j] that will be branched. To select it, a distance is computed (depending on the
-        variable_selection_scheme) for each fractionnal vraible and the one with the minimal distance is selected.
+        It will select the variable x[i,j] that will be branched on. To select it, a distance is computed (depending on the
+        variable_selection_scheme) for each fractionnal variable and the one with the minimal distance is selected.
 
 
         :param all_frac: (List) of all fractional value.
@@ -768,9 +767,9 @@ class Calculator:
         :param variable_selection_scheme: (Int) The scheme used.
 
         The different available schemes are
-            - 0 -> variable whose fractional value is closest to int (either 1 or 0).
-            - 1 -> variable whose fractional value is closest to 1/2.
-            - 2 -> variable whose fractional value is closest to 1.
+            - 0 -> variable whose fractional value is closest to int (either 1 or 0). (ROUNDED)
+            - 1 -> variable whose fractional value is closest to 1/2. (HALF)
+            - 2 -> variable whose fractional value is closest to 1. (FULL)
         By testing, the one who works best is variable_selection_scheme=2.
 
         :return: (List) [pos, value] the position of the variable and the integer it was closest to.
@@ -817,7 +816,7 @@ class Calculator:
 
     def get_one_values(self):
         """
-        Will gather in a list (list_int) all the variable of the solution which value is equal to 1.
+        Will gather in a list (list_int) all the variables of the solution which value is equal to 1.
 
         Example of the list_int :
             - list_int = [pos_1, pos_2, ..., pos_n]
@@ -870,12 +869,12 @@ class Calculator:
         """
         Repairs a LP relaxation solution using best fit. To do so, first we gather all the integer value (equal to 1
         only) of the lp relaxation and set them to one in our reparation. Then for all the object that have not yet
-        been assigned a bag, we will assign to them using best fit (i.e. putting it in the bag where the space left is
+        been assigned to a bag, we will assign one to them using best fit (i.e. putting it in the bag where the space left is
         minimum).
         :param size: (Int) The size of the problem.
         :param bag: (List) The remaining space available for each bag.
         :param solution: (List) Solution with integer value of the LP relaxation already fixed.
-        :param obj: (List) The object which haven been assigned to a bag yet.
+        :param obj: (List) The objects which have not been assigned to a bag yet.
         :param weight: (List) a list of the weights of each object.
         :return: (Int) the objective value of the repaired solution.
         """
@@ -902,14 +901,14 @@ class Calculator:
 
     def rebuild_first_fit(self, size, bag, solution, obj, weight):
         """
-        Repairs a LP relaxation solution using first fit. To do so, first we gather all the integer value (equal to 1
+        Repairs a LP relaxation solution using first fit. To do so, first we gather all the integer values (equal to 1
         only) of the lp relaxation and set them to one in our reparation. Then for all the object that have not yet
-        been assigned a bag, we will assign to them using first fit (i.e. putting it in the first bag that can accept
+        been assigned to a bag, we will assign one to them using first fit (i.e. putting it in the first bag that can accept
         the object).
         :param size: (Int) The size of the problem.
         :param bag: (List) The remaining space available for each bag.
         :param solution: (List) Solution with integer value of the LP relaxation already fixed.
-        :param obj: (List) The object which haven been assigned to a bag yet.
+        :param obj: (List) The objects which have not been assigned to a bag yet.
         :param weight: (List) a list of the weights of each object.
         :return: (Int) the objective value of the repaired solution.
         """
@@ -942,7 +941,7 @@ class Calculator:
 
     def checkFinishedProduct(self):
         """
-        Checks if there are fractional value in the LP relaxation solution X_pb.
+        Check if there are fractional value in the LP relaxation solution X_pb.
         :return: (Boolean) True if there are fractional values, False otherwhise.
         """
         for j in self.instance.x:
@@ -955,7 +954,7 @@ class Node:
     def __init__(self, constraints, upperbound, lowerbound, parent, root, non_int, cutting_planes, depth, is_done):
         """
         Initiator of the class.
-        :param constraints: (List) The constriant that have been branched on its parent and it self.
+        :param constraints: (List) The constraint that have been branched on its parent and itself.
         :param upperbound: (Int) the upperbound of the node.
         :param lowerbound: (Int) the lowerbound of the node.
         :param parent: (Object Node) The parent node.
@@ -1049,5 +1048,5 @@ class Node:
 
 
 solve_bp_lp(instance_name)
-branch_and_bound(instance_name, branching_scheme=BRANCH["BEST_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
+branch_and_bound(instance_name, branching_scheme=BRANCH["DEPTH_FIRST"], variable_selection_scheme=VARIABLE["FULL"],
                  valid_inequalities=INEQUALITIES["PROBLEM"])
