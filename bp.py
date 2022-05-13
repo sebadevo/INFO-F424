@@ -5,7 +5,7 @@ from math import ceil
 from time import time
 from copy import deepcopy
 
-instance_name = "Instances/bin_pack_500_0.dat"
+instance_name = "Instances/bin_pack_20_0.dat"
 
 time_limit = 60 # time in secondes
 
