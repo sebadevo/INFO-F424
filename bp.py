@@ -7,7 +7,7 @@ from copy import deepcopy
 
 instance_name = "Instances/bin_pack_20_0.dat"
 
-time_limit = 10
+time_limit = 1 # time in minutes
 
 BRANCH = {
     "DEPTH_FIRST": 0,
