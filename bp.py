@@ -5,9 +5,9 @@ from math import ceil
 from time import time
 from copy import deepcopy
 
-instance_name = "Instances/bin_pack_20_0.dat"
+instance_name = "Instances/bin_pack_500_0.dat"
 
-time_limit = 1 # time in minutes
+time_limit = 60 # time in secondes
 
 BRANCH = {
     "DEPTH_FIRST": 0,
@@ -52,7 +52,7 @@ def solve_bp_lp(instance_name):
 
 
 def branch_and_bound(instance_name, branching_scheme=1, variable_selection_scheme=2, valid_inequalities=1,
-                     time_limit=time_limit * 60):
+                     time_limit=time_limit):
     """
     Applies the branch and bound procedure to solve the LP.
     It will output the progress as it goes through the tree in the STDIO, and it will make a comparison between the result
